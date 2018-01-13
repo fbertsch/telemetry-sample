@@ -1,0 +1,24 @@
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /_ah/push-handlers/.*
+  script: push.app
+  login: admin
+- url: /__.*__
+  script: dockerflow.app
+- url: .*
+  script: edge.app
+
+libraries:
+- name: flask
+  version: '0.12'
+- name: ujson
+  version: latest
+
+env_variables:
+  PUBSUB_TOPIC: telemetry-fallback
+  BIGQUERY_DATASET: telemetry
+  BIGQUERY_TABLE: main
+  NUM_RETRIES: 3

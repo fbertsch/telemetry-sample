@@ -1,0 +1,13 @@
+pubsub pub bill min 1KB per request (not message)
+pubsub pub max 10MB per request
+pubsub pub max 1,000 messages per request
+pubsub push sub default max 1,000,000 kB per 100 seconds (10 MB/s)
+pubsub pull sub default max 20,000,000 kB per 100 seconds (200 MB/s)
+
+appengine incoming HTTP request max 32MB
+
+bigquery streaming max 1MB per row
+bigquery streaming max 10MB per request
+bigquery streaming max 100,000 rows per second, per project
+bigquery streaming max 10,000 rows per request
+bigquery streaming max 100 MB per second, per table
