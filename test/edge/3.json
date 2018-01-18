@@ -1,0 +1,54 @@
+{
+  "application": {
+    "architecture": "esse laborum ut in",
+    "buildId": "5950448610",
+    "channel": "consecte",
+    "name": "in",
+    "platformVersion": "37.",
+    "version": "58.",
+    "vendor": "qui minim officia",
+    "xpcomAbi": "incididunt irure Excepteur proident consectetur",
+    "displayVersion": "295."
+  },
+  "creationDate": "1842-60-28T07:39:09.724Z",
+  "id": "D515DCfb-4DFc-fe5C-2daA-135Ed31F7D00",
+  "type": "main",
+  "version": 4,
+  "clientId": "DCA0e4CF-B6C8-6cbC-Eae7-0A5dCc2A4eDE",
+  "environment": {
+    "build": {
+      "applicationId": "sed anim",
+      "applicationName": "dolor ea incididunt ",
+      "architecture": "mollit ipsum",
+      "buildId": "4048809932",
+      "version": "124.",
+      "vendor": "Lorem ullamco ad in exercitation",
+      "platformVersion": "07.",
+      "xpcomAbi": "minim esse Ut ipsum magna",
+      "hotfixVersion": "exercitation",
+      "architecturesInBinary": "sed esse incididunt ex dolore"
+    },
+    "partner": {
+      "distributionId": "enim",
+      "distributionVersion": "proident velit"
+    },
+    "profile": {
+      "creationDate": -81296863,
+      "resetDate": -43666188
+    },
+    "settings": {
+      "e10sEnabled": true,
+      "e10sCohort": "aliquip velit veniam anim",
+      "blocklistEnabled": true
+    },
+    "system": {
+      "device": {
+        "hardware": "Excepteur ea magna proident",
+        "isTablet": false,
+        "manufacturer": "adipisicing Duis exercitation ea Lorem",
+        "model": "qui"
+      },
+      "memoryMB": -57867545
+    }
+  }
+}

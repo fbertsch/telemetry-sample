@@ -1,0 +1,67 @@
+{
+  "application": {
+    "architecture": "ipsum",
+    "buildId": "6768857218",
+    "channel": "minim",
+    "name": "esse in ex mollit nostrud",
+    "platformVersion": "160.",
+    "version": "86.",
+    "vendor": "mollit et in consectetur do",
+    "xpcomAbi": "sint pariatur in ullamco ut",
+    "displayVersion": "949."
+  },
+  "creationDate": "0275-53-30T24:18:16.471Z",
+  "id": "05a3D7C7-0FBb-aaF5-c5eE-8E3F2E7Faf0d",
+  "type": "main",
+  "version": 4,
+  "environment": {
+    "build": {
+      "applicationId": "amet",
+      "applicationName": "ullamco consectetur id fugiat minim",
+      "architecture": "Lorem ad voluptate",
+      "buildId": "1608316900",
+      "version": "517.",
+      "vendor": "anim Excepteur",
+      "platformVersion": "004.",
+      "xpcomAbi": "esse Ut et",
+      "architecturesInBinary": "irure reprehenderit aliquip est"
+    },
+    "partner": {
+      "distributorChannel": "dolore",
+      "distributionVersion": "m"
+    },
+    "settings": {
+      "cpu": {
+        "speedMHz": 90698307,
+        "model": -81952900
+      },
+      "gfx": {
+        "adapters": [
+          {
+            "adapter": {
+              "vendorID": "magna reprehenderit aliquip nostrud",
+              "GPUActive": false,
+              "subsysID": "aute in occaecat id"
+            }
+          }
+        ]
+      },
+      "memoryMB": 99050635
+    },
+    "system": {
+      "memoryMB": -1815637,
+      "device": {
+        "hardware": "consectetur pariatur",
+        "isTablet": false,
+        "manufacturer": "ut amet dolor aliqua",
+        "model": "adipisicing cupidatat veniam"
+      },
+      "cpu": {
+        "cores": 623
+      },
+      "os": {
+        "windowsBuildNumber": 99893698
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "message": {
+    "publish_time": "2018-01-17T21:39:00.982Z",
+    "publishTime": "2018-01-17T21:39:00.982Z",
+    "messageId": "24695531255931",
+    "attributes": {},
+    "data": "eyJyZW1vdGVfYWRkcmVzc19jaGFpbiI6bnVsbCwiYWdlbnQiOiJjdXJsXC83LjU1LjEiLCJtZXRob2QiOiJQT1NUIiwiYXBwbGljYXRpb24iOnsidmVuZG9yIjoidXQgY3VscGEgY2lsbHVtIGNvbnNlcXVhdCIsIm5hbWUiOiJwYXJpYXR1ciB2ZWxpdCBjdXBpZGF0YXQiLCJidWlsZElkIjoiMzE4OTc4OTE1OSIsInZlcnNpb24iOiI2MDUuIiwiYXJjaGl0ZWN0dXJlIjoidmVuaWFtIHVsbGFtY28gaW4gZWl1c21vZCIsInBsYXRmb3JtVmVyc2lvbiI6IjI1LiIsInhwY29tQWJpIjoicXVpcyIsImNoYW5uZWwiOiJtYWduYSJ9LCJ2ZXJzaW9uIjo0LCJ0aW1lIjoiMjAxOC0wMS0xNyAyMTozOTowMCIsInBhdGgiOiJtYWluIiwiY3JlYXRpb25EYXRlIjoiNDI3NC02NS02M1Q2NDozODo2MC4wMTlaIiwidHlwZSI6Im1haW4iLCJpZCI6IjhDMUY5YUI2LUQ0OEYtZjUzQy1DRGNmLWY0REIyNTMxZjJENyJ9",
+    "message_id": "24695531255931"
+  },
+  "subscription": "projects/relud-telemetry-sample/subscriptions/messages"
+}

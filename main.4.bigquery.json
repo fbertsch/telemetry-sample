@@ -1,0 +1,809 @@
+[
+  {
+    "type": "STRING", 
+    "name": "clientId", 
+    "mode": "NULLABLE"
+  }, 
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "type": "INTEGER", 
+            "mode": "NULLABLE", 
+            "name": "subsessionLength"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "info", 
+        "mode": "NULLABLE"
+      }, 
+      {
+        "type": "INTEGER", 
+        "name": "ver", 
+        "mode": "NULLABLE"
+      }, 
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "fields": [
+                  {
+                    "fields": [
+                      {
+                        "type": "STRING", 
+                        "mode": "REPEATED", 
+                        "name": "event"
+                      }
+                    ], 
+                    "type": "RECORD", 
+                    "mode": "REPEATED", 
+                    "name": "events"
+                  }
+                ], 
+                "type": "RECORD", 
+                "name": "processData", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "content", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "fields": [
+                  {
+                    "fields": [
+                      {
+                        "type": "STRING", 
+                        "mode": "REPEATED", 
+                        "name": "event"
+                      }
+                    ], 
+                    "type": "RECORD", 
+                    "mode": "REPEATED", 
+                    "name": "events"
+                  }
+                ], 
+                "type": "RECORD", 
+                "name": "processData", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "gpu", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "fields": [
+                  {
+                    "fields": [
+                      {
+                        "type": "STRING", 
+                        "mode": "REPEATED", 
+                        "name": "event"
+                      }
+                    ], 
+                    "type": "RECORD", 
+                    "mode": "REPEATED", 
+                    "name": "events"
+                  }
+                ], 
+                "type": "RECORD", 
+                "name": "processData", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "parent", 
+            "mode": "REQUIRED"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "processes", 
+        "mode": "NULLABLE"
+      }
+    ], 
+    "type": "RECORD", 
+    "name": "payload", 
+    "mode": "NULLABLE"
+  }, 
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "type": "FLOAT", 
+            "name": "resetDate", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "FLOAT", 
+            "name": "creationDate", 
+            "mode": "NULLABLE"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "profile", 
+        "mode": "NULLABLE"
+      }, 
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "type": "BOOLEAN", 
+                "name": "enabled", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "name": "autoDownload", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "channel", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "update", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "type": "STRING", 
+                "name": "content", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "source", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "medium", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "campaign", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "attribution", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "BOOLEAN", 
+            "mode": "NULLABLE", 
+            "name": "isDefaultBrowser"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "locale", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "BOOLEAN", 
+            "name": "telemetryEnabled", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "type": "STRING", 
+                "name": "origin", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "mode": "NULLABLE", 
+                "name": "loadPath"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "submissionURL", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "name", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "defaultSearchEngineData", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "type": "INTEGER", 
+                "mode": "NULLABLE", 
+                "name": "effectiveContentProcessLevel"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "sandbox", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "BOOLEAN", 
+            "name": "e10sEnabled", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "BOOLEAN", 
+            "name": "blocklistEnabled", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "defaultSearchEngine", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "e10sCohort", 
+            "mode": "NULLABLE"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "settings", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "fields": [
+                  {
+                    "fields": [
+                      {
+                        "type": "BOOLEAN", 
+                        "name": "GPUActive", 
+                        "mode": "NULLABLE"
+                      }, 
+                      {
+                        "type": "STRING", 
+                        "mode": "NULLABLE", 
+                        "name": "driverVersion"
+                      }, 
+                      {
+                        "type": "STRING", 
+                        "mode": "NULLABLE", 
+                        "name": "driverDate"
+                      }, 
+                      {
+                        "type": "STRING", 
+                        "mode": "NULLABLE", 
+                        "name": "description"
+                      }, 
+                      {
+                        "type": "STRING", 
+                        "mode": "NULLABLE", 
+                        "name": "vendorID"
+                      }, 
+                      {
+                        "type": "INTEGER", 
+                        "mode": "NULLABLE", 
+                        "name": "RAM"
+                      }, 
+                      {
+                        "type": "STRING", 
+                        "mode": "NULLABLE", 
+                        "name": "driver"
+                      }, 
+                      {
+                        "type": "STRING", 
+                        "mode": "NULLABLE", 
+                        "name": "deviceID"
+                      }, 
+                      {
+                        "type": "STRING", 
+                        "mode": "NULLABLE", 
+                        "name": "subsysID"
+                      }
+                    ], 
+                    "type": "RECORD", 
+                    "name": "adapter", 
+                    "mode": "NULLABLE"
+                  }
+                ], 
+                "type": "RECORD", 
+                "mode": "REPEATED", 
+                "name": "adapters"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "mode": "NULLABLE", 
+                "name": "DWriteEnabled"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "mode": "NULLABLE", 
+                "name": "D2DEnabled"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "gfx", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "type": "STRING", 
+                "name": "kernelVersion", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "name", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "FLOAT", 
+                "mode": "NULLABLE", 
+                "name": "windowsUBR"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "locale", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "FLOAT", 
+                "name": "installYear", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "version", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "FLOAT", 
+                "name": "servicePackMajor", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "FLOAT", 
+                "name": "windowsBuildNumber", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "FLOAT", 
+                "name": "servicePackMinor", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "os", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "FLOAT", 
+            "name": "memoryMB", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "fields": [
+                  {
+                    "type": "STRING", 
+                    "mode": "NULLABLE", 
+                    "name": "model"
+                  }, 
+                  {
+                    "type": "STRING", 
+                    "mode": "NULLABLE", 
+                    "name": "revision"
+                  }
+                ], 
+                "type": "RECORD", 
+                "name": "profile", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "fields": [
+                  {
+                    "type": "STRING", 
+                    "mode": "NULLABLE", 
+                    "name": "model"
+                  }, 
+                  {
+                    "type": "STRING", 
+                    "mode": "NULLABLE", 
+                    "name": "revision"
+                  }
+                ], 
+                "type": "RECORD", 
+                "name": "binary", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "fields": [
+                  {
+                    "type": "STRING", 
+                    "mode": "NULLABLE", 
+                    "name": "model"
+                  }, 
+                  {
+                    "type": "STRING", 
+                    "mode": "NULLABLE", 
+                    "name": "revision"
+                  }
+                ], 
+                "type": "RECORD", 
+                "name": "system", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "hdd", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "type": "STRING", 
+                "name": "hardware", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "name": "isTablet", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "model", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "manufacturer", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "device", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "BOOLEAN", 
+            "name": "isWow64", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "fields": [
+              {
+                "type": "INTEGER", 
+                "name": "count", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "FLOAT", 
+                "mode": "NULLABLE", 
+                "name": "l3cacheKB"
+              }, 
+              {
+                "type": "STRING", 
+                "mode": "NULLABLE", 
+                "name": "vendor"
+              }, 
+              {
+                "type": "INTEGER", 
+                "mode": "NULLABLE", 
+                "name": "family"
+              }, 
+              {
+                "type": "INTEGER", 
+                "mode": "NULLABLE", 
+                "name": "stepping"
+              }, 
+              {
+                "type": "INTEGER", 
+                "mode": "NULLABLE", 
+                "name": "cores"
+              }, 
+              {
+                "type": "FLOAT", 
+                "mode": "NULLABLE", 
+                "name": "l2cacheKB"
+              }, 
+              {
+                "type": "FLOAT", 
+                "mode": "NULLABLE", 
+                "name": "speedMHz"
+              }, 
+              {
+                "type": "INTEGER", 
+                "mode": "NULLABLE", 
+                "name": "model"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "cpu", 
+            "mode": "NULLABLE"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "system", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "fields": [
+          {
+            "type": "STRING", 
+            "name": "applicationName", 
+            "mode": "REQUIRED"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "xpcomAbi", 
+            "mode": "REQUIRED"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "vendor", 
+            "mode": "REQUIRED"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "buildId", 
+            "mode": "REQUIRED"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "architecturesInBinary", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "version", 
+            "mode": "REQUIRED"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "architecture", 
+            "mode": "REQUIRED"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "platformVersion", 
+            "mode": "REQUIRED"
+          }, 
+          {
+            "type": "STRING", 
+            "mode": "NULLABLE", 
+            "name": "hotfixVersion"
+          }, 
+          {
+            "type": "STRING", 
+            "name": "applicationId", 
+            "mode": "REQUIRED"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "build", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "fields": [
+          {
+            "type": "STRING", 
+            "mode": "NULLABLE", 
+            "name": "distributionId"
+          }, 
+          {
+            "type": "STRING", 
+            "mode": "NULLABLE", 
+            "name": "distributorChannel"
+          }, 
+          {
+            "type": "STRING", 
+            "mode": "NULLABLE", 
+            "name": "partnerId"
+          }, 
+          {
+            "type": "STRING", 
+            "mode": "NULLABLE", 
+            "name": "distributor"
+          }, 
+          {
+            "type": "STRING", 
+            "mode": "NULLABLE", 
+            "name": "distributionVersion"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "partner", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "type": "STRING", 
+                "mode": "NULLABLE", 
+                "name": "description"
+              }, 
+              {
+                "type": "INTEGER", 
+                "name": "foreignInstall", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "name": "userDisabled", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "name", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "name": "appDisabled", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "version", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "name": "blocklisted", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "BOOLEAN", 
+                "name": "hasBinaryComponents", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "INTEGER", 
+                "name": "scope", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "INTEGER", 
+                "name": "updateDay", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "id", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "INTEGER", 
+                "mode": "NULLABLE", 
+                "name": "installDay"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "theme", 
+            "mode": "NULLABLE"
+          }, 
+          {
+            "type": "STRING", 
+            "mode": "NULLABLE", 
+            "name": "persona"
+          }, 
+          {
+            "fields": [
+              {
+                "type": "STRING", 
+                "name": "id", 
+                "mode": "NULLABLE"
+              }, 
+              {
+                "type": "STRING", 
+                "name": "branch", 
+                "mode": "NULLABLE"
+              }
+            ], 
+            "type": "RECORD", 
+            "name": "activeExperiment", 
+            "mode": "NULLABLE"
+          }
+        ], 
+        "type": "RECORD", 
+        "name": "addons", 
+        "mode": "NULLABLE"
+      }
+    ], 
+    "type": "RECORD", 
+    "name": "environment", 
+    "mode": "NULLABLE"
+  }, 
+  {
+    "fields": [
+      {
+        "type": "STRING", 
+        "name": "vendor", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "name", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "buildId", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "platformVersion", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "version", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "architecture", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "displayVersion", 
+        "mode": "NULLABLE"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "xpcomAbi", 
+        "mode": "REQUIRED"
+      }, 
+      {
+        "type": "STRING", 
+        "name": "channel", 
+        "mode": "REQUIRED"
+      }
+    ], 
+    "type": "RECORD", 
+    "name": "application", 
+    "mode": "REQUIRED"
+  }, 
+  {
+    "type": "FLOAT", 
+    "name": "version", 
+    "mode": "REQUIRED"
+  }, 
+  {
+    "type": "STRING", 
+    "name": "creationDate", 
+    "mode": "REQUIRED"
+  }, 
+  {
+    "type": "STRING", 
+    "name": "type", 
+    "mode": "REQUIRED"
+  }, 
+  {
+    "type": "STRING", 
+    "name": "id", 
+    "mode": "REQUIRED"
+  }
+]

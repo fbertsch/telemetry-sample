@@ -1,6 +1,7 @@
 from flask import current_app, Flask, request
 from googleapiclient import discovery
 from os import environ
+from trim_message import trim_message
 import base64
 import logging
 import traceback
@@ -17,6 +18,9 @@ app.config['BIGQUERY_TABLE'] = environ['BIGQUERY_TABLE']
 app.config['NUM_RETRIES'] = int(environ.get('NUM_RETRIES', 3))
 bigquery = discovery.build('bigquery', 'v2')
 
+with open('main.4.bigquery.json') as o:
+    main_bq_schema = json.loads(o.read())
+
 
 @app.route('/_ah/push-handlers/messages', methods=['POST'])
 def push_messages():
@@ -24,6 +28,7 @@ def push_messages():
     message = json.loads(base64.b64decode(payload['message']['data']))
     if 'time' in message:
         date = message['time'][:4] + message['time'][5:7] + message['time'][8:10]
+        message = trim_message(message)
         response = bigquery.tabledata().insertAll(
             projectId=current_app.config['PROJECT_ID'],
             datasetId=current_app.config['BIGQUERY_DATASET'],
