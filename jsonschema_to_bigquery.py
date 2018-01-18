@@ -1,7 +1,5 @@
 import json
-
-with open('main.4.schema.json') as o:
-    main_ping_v4_schema = json.loads(o.read())
+from sys import stdin
 
 type_map = {
     'string': 'STRING',
@@ -9,6 +7,7 @@ type_map = {
     'number': 'FLOAT',
     'integer': 'INTEGER',
 }
+
 
 def resolve_multitype(types, item):
     types = set(types)
@@ -42,6 +41,7 @@ def resolve_multitype(types, item):
         item['type'] = 'INTEGER'
     else:
         raise Exception(json.dumps([list(types), item]))
+
 
 def bq_schema(jschema):
     if type(jschema) is list:
@@ -106,8 +106,14 @@ def bq_schema(jschema):
         raise Exception(json.dumps([item,jschema, type(item['type']) in [str, unicode], type(item['type']) in [str, unicode] and item['type'] in type_map]))
     return item
 
-schema = bq_schema(main_ping_v4_schema)['fields']
+try:
+    jsonschema = json.loads(stdin.read())
+except Exception:
+    from sys import stderr
+    stderr.write('usage: jsonschema_to_bigquery.py < jsonschema.json > bigqueryschema.json\n'
+    exit(1)
 
-with open('main.4.bigquery.json', 'w') as o:
-    o.write(json.dumps(schema, indent=2))
+schema = bq_schema(jsonschema)['fields']
+
+print(json.dumps(schema, indent=2))
 
