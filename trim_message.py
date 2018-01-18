@@ -8,9 +8,6 @@ try:
 except ImportError:
     import json
 
-with open('main.4.bigquery.json') as o:
-    main_bq_schema = json.loads(o.read())
-
 bqtype_to_type = {
     'INTEGER': int,
     'FLOAT': float,
@@ -19,7 +16,7 @@ bqtype_to_type = {
 }
 
 
-def build_schema(schema_file='main.4.bigquery.json', bq_schema=None):
+def build_schema(schema_file='schemas/main.4.bigquery.json', bq_schema=None):
     if bq_schema is None:
         with open(schema_file) as o:
             bq_schema = json.loads(o.read())

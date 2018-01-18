@@ -15,32 +15,27 @@ except ImportError:
     import json
 
 app = Flask(__name__)
-app.config['PUBSUB_TOPIC'] = environ.get('PUBSUB_TOPIC')
-if (
-    app.config['PUBSUB_TOPIC'] is not None and
-    not app.config['PUBSUB_TOPIC'].startswith('projects/')
-):
-    app.config['PUBSUB_TOPIC'] = 'projects/%s/topics/%s' % (
-        environ['APPLICATION_ID'].split('~').pop(),
-        app.config['PUBSUB_TOPIC']
-    )
+app.config['PROJECT_ID'] = environ['APPLICATION_ID'].split('~').pop()
 app.config['NUM_RETRIES'] = int(environ.get('NUM_RETRIES', 3))
 pubsub = discovery.build('pubsub', 'v1')
 
-with open('main.4.schema.json') as o:
-    main_ping_v4_schema = json.loads(o.read())
+schema_files = dict(json.loads(environ['EDGE_SCHEMA_FILES']))
+schemas = {}
+for topic, path in schema_files.items():
+    with open(path) as o:
+        schemas[topic] = json.loads(o.read())
 
 
-@app.route('/', methods=['GET', 'POST'])
-@app.route('/<path:path>', methods=['GET', 'POST'])
-def publish(path=''):
+@app.route('/<path:topic>', methods=['POST'])
+def publish(topic=''):
+    if topic not in schemas:
+        return 'unknown ping type', 404
     date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     payload = request.get_json(force=True, silent=True)
     try:
-        validate(payload, main_ping_v4_schema)
-    except ValidationError:
-        raise
-        return 'invalid payload', 400
+        validate(payload, schemas[topic])
+    except ValidationError as e:
+        return 'invalid payload: %s' % e, 400
     meta = {
         'agent': request.headers.get('User-Agent'),
         'method': request.method,
@@ -59,14 +54,11 @@ def publish(path=''):
             }
         ],
     }
-    if current_app.config['PUBSUB_TOPIC'] is not None:
-        pubsub.projects().topics().publish(
-            topic=current_app.config['PUBSUB_TOPIC'],
-            body=body,
-        ).execute(num_retries=current_app.config['NUM_RETRIES'])
-        return '', 200
-    else:
-        return json.dumps(body), 200
+    pubsub.projects().topics().publish(
+        topic='projects/%s/topics/%s' % (current_app.config['PROJECT_ID'], topic),
+        body=body,
+    ).execute(num_retries=current_app.config['NUM_RETRIES'])
+    return '', 200
 
 
 @app.errorhandler(500)

@@ -18,7 +18,7 @@ libraries:
   version: latest
 
 env_variables:
-  PUBSUB_TOPIC: telemetry-fallback
   BIGQUERY_DATASET: telemetry
-  BIGQUERY_TABLE: main
   NUM_RETRIES: 3
+  EDGE_SCHEMA_FILES: '{"main":"schemas/main.4.schema.json"}'
+  BIGQUERY_SCHEMA_FILES: '{"main":"schemas/main.4.bigquery.json"}'
