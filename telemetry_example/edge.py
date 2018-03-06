@@ -1,12 +1,14 @@
 from datetime import datetime
 from flask import current_app, Flask, request
+from geoip2.database import MODE_MEMORY
 from googleapiclient import discovery
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 from os import environ
-from probables.cuckoo.cuckoo import CuckooFilter
+from probables import CuckooFilter
 from ua import ua_parse
 import base64
+import geoip2.database
 import logging
 import traceback
 
@@ -21,6 +23,8 @@ app.config['NUM_RETRIES'] = int(environ.get('NUM_RETRIES', 3))
 pubsub = discovery.build('pubsub', 'v1')
 
 cf = CuckooFilter(capacity=1000)
+
+geoip2 = geoip2.database.Reader(environ['GEOIP2_DATABASE'], mode=MODE_MEMORY)
 
 schema_files = dict(json.loads(environ['EDGE_SCHEMA_FILES']))
 schemas = {}
@@ -47,9 +51,13 @@ def publish(topic=''):
         'agent': request.headers.get('User-Agent'),
         'method': request.method,
         'path': path,
-        'remote_address_chain': request.headers.get('X-Forwarded-For'),
+        'remote_address_chain': request.remote_addr,
         'time': date,
     }
+    try:
+        meta['country'] = geoip2.country(request.remote_addr).country.name
+    except:
+        pass
     payload.update(meta)
     ua_parse(payload, 'agent')
     body = {

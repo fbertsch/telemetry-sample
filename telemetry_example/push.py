@@ -26,7 +26,7 @@ bq_schemas = {
 
 
 @app.route('/_ah/push-handlers/<path:table>', methods=['POST'])
-def push_messages(table='main'):
+def push_messages(table):
     if table not in bq_schemas:
         return 'unknown table', 404
     payload = request.get_json(force=True, silent=True)
@@ -42,6 +42,11 @@ def push_messages(table='main'):
         ).execute(num_retries=current_app.config['NUM_RETRIES'])
     # TODO log invalid field errors in response
     return '', 204
+
+
+@app.route('/<path:path>', methods=['POST'])
+def publish(path):
+    return path, 200
 
 
 @app.errorhandler(500)

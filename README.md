@@ -28,7 +28,7 @@ create bigquery table
 create pubsub topic
 
     gcloud pubsub topics create main_ping
-    gcloud pubsub subscriptions create main_ping_appengine --topic main_ping --push-endpoint https://telemetry-example-dot-mozilla-data-poc.appspot.com/ah/push-handlers/main_ping
+    gcloud pubsub subscriptions create main_ping_appengine --topic main_ping --push-endpoint https://telemetry-example-dot-mozilla-data-poc.appspot.com/_ah/push-handlers/main_ping
 
 install `libs/`
 
@@ -40,6 +40,10 @@ install `libs/`
 
     # only for OS X
     test -e ~/.pydistutils.cfg.bak && mv ~/.pydistutils.cfg{.bak,} || rm ~/.pydistutils.cfg
+
+download the free GeoLite2 country database:
+
+    scripts/download_geolite2.sh
 
 deploy code:
 

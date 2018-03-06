@@ -5,13 +5,13 @@ threadsafe: yes
 
 handlers:
 - url: /_ah/push-handlers/.*
-  script: push.app
+  script: telemetry_example.push.app
   login: admin
   secure: always
 - url: /__.*__
-  script: dockerflow.app
+  script: telemetry_example.dockerflow.app
 - url: .*
-  script: edge.app
+  script: telemetry_example.edge.app
 
 libraries:
 - name: flask
@@ -24,3 +24,4 @@ env_variables:
   NUM_RETRIES: 3
   EDGE_SCHEMA_FILES: '{"main_ping":"schemas/main.4.schema.json"}'
   BIGQUERY_SCHEMA_FILES: '{"main_ping":"schemas/main.4.bigquery.json"}'
+  GEOIP2_DATABASE: GeoLite2-Country.mmdb
