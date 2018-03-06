@@ -1,3 +1,4 @@
+service: telemetry-example
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -6,6 +7,7 @@ handlers:
 - url: /_ah/push-handlers/.*
   script: push.app
   login: admin
+  secure: always
 - url: /__.*__
   script: dockerflow.app
 - url: .*
@@ -18,7 +20,7 @@ libraries:
   version: latest
 
 env_variables:
-  BIGQUERY_DATASET: telemetry
+  BIGQUERY_DATASET: telemetry_example
   NUM_RETRIES: 3
-  EDGE_SCHEMA_FILES: '{"main":"schemas/main.4.schema.json"}'
-  BIGQUERY_SCHEMA_FILES: '{"main":"schemas/main.4.bigquery.json"}'
+  EDGE_SCHEMA_FILES: '{"main_ping":"schemas/main.4.schema.json"}'
+  BIGQUERY_SCHEMA_FILES: '{"main_ping":"schemas/main.4.bigquery.json"}'

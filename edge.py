@@ -4,6 +4,7 @@ from googleapiclient import discovery
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 from os import environ
+from probables.cuckoo.cuckoo import CuckooFilter
 from ua import ua_parse
 import base64
 import logging
@@ -18,6 +19,8 @@ app = Flask(__name__)
 app.config['PROJECT_ID'] = environ['APPLICATION_ID'].split('~').pop()
 app.config['NUM_RETRIES'] = int(environ.get('NUM_RETRIES', 3))
 pubsub = discovery.build('pubsub', 'v1')
+
+cf = CuckooFilter(capacity=1000)
 
 schema_files = dict(json.loads(environ['EDGE_SCHEMA_FILES']))
 schemas = {}
@@ -36,6 +39,10 @@ def publish(topic=''):
         validate(payload, schemas[topic])
     except ValidationError as e:
         return 'invalid payload: %s' % e, 400
+    if cf.check(payload['id']):
+        return 'duplicate\n', 200
+    else:
+        cf.add(payload['id'])
     meta = {
         'agent': request.headers.get('User-Agent'),
         'method': request.method,
