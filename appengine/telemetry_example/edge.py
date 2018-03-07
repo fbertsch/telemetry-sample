@@ -52,7 +52,7 @@ def publish(topic=''):
         'method': request.method,
         'path': path,
         'remote_address_chain': request.remote_addr,
-        'time': date,
+        'submission_date': date,
     }
     try:
         meta['country'] = geoip2.country(request.remote_addr).country.name

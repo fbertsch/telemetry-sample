@@ -4,10 +4,11 @@ api_version: 1
 threadsafe: yes
 
 handlers:
-- url: /_ah/push-handlers/.*
-  script: telemetry_example.push.app
-  login: admin
-  secure: always
+## replaced by dataflow
+# - url: /_ah/push-handlers/.*
+#   script: telemetry_example.push.app
+#   login: admin
+#   secure: always
 - url: /__.*__
   script: telemetry_example.dockerflow.app
 - url: .*
@@ -33,8 +34,11 @@ skip_files:
 - test/
 
 env_variables:
-  BIGQUERY_DATASET: telemetry_example
+## for gcp api
   NUM_RETRIES: 3
+## for telemetry_example.edge.app
   EDGE_SCHEMA_FILES: '{"main_ping":"schemas/main.4.schema.json"}'
-  BIGQUERY_SCHEMA_FILES: '{"main_ping":"schemas/main.4.bigquery.json"}'
   GEOIP2_DATABASE: GeoLite2-Country.mmdb
+## for telemetry_example.push.app
+# BIGQUERY_DATASET: telemetry_example
+# BIGQUERY_SCHEMA_FILES: '{"main_ping":"schemas/main.4.bigquery.json"}'

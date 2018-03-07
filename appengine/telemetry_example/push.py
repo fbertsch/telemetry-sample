@@ -32,12 +32,11 @@ def push_messages(table):
     payload = request.get_json(force=True, silent=True)
     message = json.loads(base64.b64decode(payload['message']['data']))
     if 'time' in message:
-        date = message['time'][:4] + message['time'][5:7] + message['time'][8:10]
         message = trim_message(message, bq_schemas[table])
         response = bigquery.tabledata().insertAll(
             projectId=current_app.config['PROJECT_ID'],
             datasetId=current_app.config['BIGQUERY_DATASET'],
-            tableId=table + '$' + date,
+            tableId=table,
             body={'rows': [{'json': message}]},
         ).execute(num_retries=current_app.config['NUM_RETRIES'])
     # TODO log invalid field errors in response
