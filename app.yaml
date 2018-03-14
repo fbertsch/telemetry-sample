@@ -19,6 +19,19 @@ libraries:
 - name: ujson
   version: latest
 
+skip_files:
+# defaults
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+# custom
+- default/
+- requirements.txt
+- scripts/
+- test/
+
 env_variables:
   BIGQUERY_DATASET: telemetry_example
   NUM_RETRIES: 3

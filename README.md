@@ -20,15 +20,14 @@ appengine -> pubsub -> appengine -> bigquery
 Deploy
 ===
 
-create bigquery table
+deploy app engine default service
 
-    bq mk telemetry_example
-    bq mk --schema schemas/main.4.bigquery.json --time_partitioning_type DAY telemetry_example.main_ping
+    # app engine requires a default service, so this creates a minimal dockerflow service
+    gcloud app deploy appengine/default/app.yaml
 
-create pubsub topic
+download the free GeoLite2 country database
 
-    gcloud pubsub topics create main_ping
-    gcloud pubsub subscriptions create main_ping_appengine --topic main_ping --push-endpoint https://telemetry-example-dot-mozilla-data-poc.appspot.com/_ah/push-handlers/main_ping
+    scripts/download_geolite2.sh
 
 install `libs/`
 
@@ -41,11 +40,16 @@ install `libs/`
     # only for OS X
     test -e ~/.pydistutils.cfg.bak && mv ~/.pydistutils.cfg{.bak,} || rm ~/.pydistutils.cfg
 
-download the free GeoLite2 country database:
-
-    scripts/download_geolite2.sh
-
-deploy code:
+deploy app engine
 
     gcloud app deploy
 
+create pubsub topic
+
+    gcloud pubsub topics create main_ping
+    gcloud pubsub subscriptions create main_ping_appengine --topic main_ping --push-endpoint https://telemetry-example-dot-mozilla-data-poc.appspot.com/_ah/push-handlers/main_ping
+
+create bigquery table
+
+    bq mk telemetry_example
+    bq mk --schema schemas/main.4.bigquery.json --time_partitioning_type DAY telemetry_example.main_ping
