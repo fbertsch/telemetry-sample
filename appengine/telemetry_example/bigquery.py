@@ -25,20 +25,19 @@ bq_schemas = {
 }
 
 
-@app.route('/_ah/push-handlers/<path:table>', methods=['POST'])
+@app.route('/_ah/push-handlers/bigquery/<path:table>', methods=['POST'])
 def push_messages(table):
     if table not in bq_schemas:
         return 'unknown table', 404
     payload = request.get_json(force=True, silent=True)
-    message = json.loads(base64.b64decode(payload['message']['data']))
-    if 'time' in message:
-        message = trim_message(message, bq_schemas[table])
-        response = bigquery.tabledata().insertAll(
-            projectId=current_app.config['PROJECT_ID'],
-            datasetId=current_app.config['BIGQUERY_DATASET'],
-            tableId=table,
-            body={'rows': [{'json': message}]},
-        ).execute(num_retries=current_app.config['NUM_RETRIES'])
+    data = json.loads(base64.b64decode(payload['message']['data']))
+    message = trim_message(message, bq_schemas[table])
+    response = bigquery.tabledata().insertAll(
+        projectId=current_app.config['PROJECT_ID'],
+        datasetId=current_app.config['BIGQUERY_DATASET'],
+        tableId=table,
+        body={'rows': [{'json': message}]},
+    ).execute(num_retries=current_app.config['NUM_RETRIES'])
     # TODO log invalid field errors in response
     return '', 204
 

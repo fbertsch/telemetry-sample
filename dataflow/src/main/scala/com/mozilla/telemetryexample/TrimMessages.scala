@@ -2,6 +2,7 @@ package com.mozilla.telemetryexample
 
 import org.apache.beam.sdk.transforms.DoFn.ProcessElement
 import org.apache.beam.sdk.transforms.DoFn
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage
 import org.json4s.jackson.Serialization.read
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST._
@@ -9,15 +10,16 @@ import org.json4s.jackson.JsonMethods.{compact, render, parse}
 import org.json4s.JValue
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.bigquery.model.TableRow
+import scala.collection.JavaConverters._
 
-class StringToJValue() extends DoFn[String, JValue] {
+class JsonToJValue() extends DoFn[String, JValue] {
   @ProcessElement
   def processElement(c: ProcessContext): Unit = {
     c.output(parse(c.element()))
   }
 }
 
-class JValueToString() extends DoFn[JValue, String] {
+class JValueToJson() extends DoFn[JValue, String] {
   @ProcessElement
   def processElement(c: ProcessContext): Unit = {
     if (c.element() != JNothing) {
@@ -26,12 +28,27 @@ class JValueToString() extends DoFn[JValue, String] {
   }
 }
 
-class StringToTableRow() extends DoFn[String, TableRow] {
+class JsonToTableRow() extends DoFn[String, TableRow] {
   val objectMapper = new ObjectMapper()
 
   @ProcessElement
   def processElement(c: ProcessContext): Unit = {
     c.output(objectMapper.readValue(c.element(), classOf[TableRow]))
+  }
+}
+
+case class PSMessage(data: String, attributes: Map[String,String])
+
+class JsonToPubsubMessage() extends DoFn[String, PubsubMessage] {
+  def convert(element: String): PubsubMessage = {
+    implicit val formats = DefaultFormats
+    val message = read[PSMessage](element)
+    new PubsubMessage(message.data.getBytes, message.attributes.asJava)
+  }
+
+  @ProcessElement
+  def processElement(c: ProcessContext): Unit = {
+    c.output(convert(c.element()))
   }
 }
 

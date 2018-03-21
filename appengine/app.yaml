@@ -4,14 +4,17 @@ api_version: 1
 threadsafe: yes
 
 handlers:
-## replaced by dataflow
-# - url: /_ah/push-handlers/.*
-#   script: telemetry_example.push.app
-#   login: admin
-#   secure: always
+- url: /_ah/push-handlers/bigquery/.*
+  script: telemetry_example.bigquery.app
+  login: admin
+  secure: always
+- url: /_ah/push-handlers/validate/.*
+  script: telemetry_example.validate.app
+  login: admin
+  secure: always
 - url: /__.*__
   script: telemetry_example.dockerflow.app
-- url: .*
+- url: /.*
   script: telemetry_example.edge.app
 
 libraries:
@@ -37,8 +40,11 @@ env_variables:
 ## for gcp api
   NUM_RETRIES: 3
 ## for telemetry_example.edge.app
-  EDGE_SCHEMA_FILES: '{"main_ping":"schemas/main.4.schema.json"}'
+  EDGE_TOPICS: '{"main_ping":"main_ping_raw","id_ping":"id_ping_raw"}'
+## for telemetry_example.validate.app
+  VALIDATE_SCHEMAS: '{"main_ping":"schemas/main.4.schema.json","id_ping":"schemas/id.schema.json"}'
   GEOIP2_DATABASE: GeoLite2-Country.mmdb
-## for telemetry_example.push.app
-# BIGQUERY_DATASET: telemetry_example
-# BIGQUERY_SCHEMA_FILES: '{"main_ping":"schemas/main.4.bigquery.json"}'
+# TOPICS_IF_INVALID: '{"main_ping": "main_ping_invalid"}'
+## for telemetry_example.bigquery.app
+  BIGQUERY_DATASET: telemetry_example
+  BIGQUERY_SCHEMA_FILES: '{"main_ping":"schemas/main.4.bigquery.json","id_ping":"schemas/id.bigquery.json"}'

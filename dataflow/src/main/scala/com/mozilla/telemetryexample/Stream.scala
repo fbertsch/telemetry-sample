@@ -12,15 +12,17 @@ import org.apache.beam.sdk.transforms.windowing.{FixedWindows, Window}
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.{Duration, Instant}
 
-object MainPing {
-  val schemaFile = "schemas/main.4.bigquery.json"
-  val schemaString = Source.fromResource(schemaFile).mkString
+object Stream {
+  var schemaFile = "schemas/main.4.bigquery.json"
+  def schemaString = Source.fromResource(schemaFile).mkString
 
   def main(args: Array[String]): Unit = {
     val options = PipelineOptionsFactory
       .fromArgs(args: _*)
       .withValidation()
       .as(classOf[MainPingOptions])
+
+    schemaFile = options.getSchema
 
     val pipeline = Pipeline.create(options)
 
@@ -43,21 +45,31 @@ object MainPing {
   }
 
   def processRecords(records: PCollection[String], options: MainPingOptions): PCollection[String] = {
-    records
-      .apply(ParDo.of(new StringToJValue()))
-      .apply(ParDo.of(new TrimToSchema(schemaString)))
-      .apply(ParDo.of(new JValueToString()))
-      .apply(Window.into[String](FixedWindows.of(Duration.standardMinutes(options.getWindowSize))))
-  }
+    if (schemaFile != "") {
+      records
+        .apply(ParDo.of(new JsonToJValue()))
+        .apply(ParDo.of(new TrimToSchema(schemaString)))
+        .apply(ParDo.of(new JValueToJson()))
+    } else {
+      if (options.getOutput.matches("bigquery://(.*:)?.*\\..*")) {
+        throw new IllegalArgumentException("can't write to bigquery without schema")
+      }
+      records
+    }
+  }.apply(Window.into[String](FixedWindows.of(Duration.standardMinutes(options.getWindowSize))))
 
   def writeOutput(pipeline: PCollection[String], options: MainPingOptions) = {
     val output: String = options.getOutput
     if (output.matches("pubsub://projects/.*/topics/.*")) {
       pipeline
         .apply(PubsubIO.writeStrings().to(output.substring(9)))
+    } else if (output.matches("pubsubMessages://projects/.*/topics/.*")) {
+      pipeline
+        .apply(ParDo.of(new JsonToPubsubMessage()))
+        .apply(PubsubIO.writeMessages().to(output.substring(17)))
     } else if (output.matches("bigquery://(.*:)?.*\\..*")) {
       pipeline
-        .apply(ParDo.of(new StringToTableRow()))
+        .apply(ParDo.of(new JsonToTableRow()))
         .apply(BigQueryIO
           .writeTableRows()
           .to(output.substring(11))
@@ -78,7 +90,7 @@ object MainPing {
 
 trait MainPingOptions extends PipelineOptions {
   @Description("Input to read from")
-  @Default.String("src/test/resources/lines.json")
+  @Required
   def getInput: String
   def setInput(path: String)
 
@@ -92,7 +104,7 @@ trait MainPingOptions extends PipelineOptions {
   def getWindowSize: Long
   def setWindowSize(value: Long): Unit
 
-  @Description("Number of output shards when writing to a files")
+  @Description("Number of output shards when writing to files")
   @Default.Integer(1)
   def getOutputShards: Int
   def setOutputShards(num: Int)
@@ -106,6 +118,11 @@ trait MainPingOptions extends PipelineOptions {
   @Default.String("gs://mozilla-data-poc/telemetry_example/gcstmp")
   def getGcsTempLocation: String
   def setGcsTempLocation(path: String)
+
+  @Description("Name of schema resource file")
+  @Default.String("schemas/main.4.bigquery.json")
+  def getSchema: String
+  def setSchema(path: String)
 }
 
 class StringProvider(value: String) extends ValueProvider[String] {

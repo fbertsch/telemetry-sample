@@ -1,0 +1,15 @@
+{
+  "fields": [
+    {
+      "type": "STRING", 
+      "name": "id", 
+      "mode": "REQUIRED"
+    }, 
+    {
+      "type": "TIMESTAMP", 
+      "mode": "REQUIRED", 
+      "name": "submission_date"
+    }
+  ], 
+  "type": "RECORD"
+}
