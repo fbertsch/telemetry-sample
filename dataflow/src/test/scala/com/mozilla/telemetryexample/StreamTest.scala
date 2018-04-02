@@ -5,7 +5,8 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.apache.beam.sdk.transforms.DoFnTester
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-
+import org.json4s.JsonAST._
+import org.json4s.jackson.JsonMethods.{compact, render}
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage
 import org.json4s.jackson.Serialization.read
 import org.json4s.DefaultFormats
@@ -38,5 +39,25 @@ class StreamTest extends FlatSpec with Matchers {
 
     val values = jsonToPubsubMessageTester.processBundle(List(
       """{"data":"","attributes":{}}""").asJava)
+  }
+
+  "aggregate" must "merge jvalues" in {
+    val accum = new Aggregate.Accum
+
+    accum.merge(JDecimal(1.5), JDecimal(1.5)) should be (JDecimal(3))
+    accum.merge(JNull, JObject()) should be (JObject())
+    accum.merge(JObject(), JNull) should be (JObject())
+    accum.merge(
+      JObject(List(
+        JField("a", JInt(1))
+      )),
+      JObject(List(
+        JField("a", JInt(1)),
+        JField("b", JInt(2))
+      ))
+    ) should be (JObject(List(
+      JField("a", JInt(2)),
+      JField("b", JInt(2))
+    )))
   }
 }

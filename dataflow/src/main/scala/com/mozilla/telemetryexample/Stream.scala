@@ -7,7 +7,7 @@ import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO
 import org.apache.beam.sdk.io.TextIO
 import org.apache.beam.sdk.options.Validation.Required
 import org.apache.beam.sdk.options.{Default, Description, PipelineOptions, PipelineOptionsFactory, ValueProvider}
-import org.apache.beam.sdk.transforms.ParDo
+import org.apache.beam.sdk.transforms.{Combine, ParDo}
 import org.apache.beam.sdk.transforms.windowing.{FixedWindows, Window}
 import org.apache.beam.sdk.values.PCollection
 import org.joda.time.{Duration, Instant}
@@ -23,6 +23,12 @@ object Stream {
       .as(classOf[MainPingOptions])
 
     schemaFile = options.getSchema
+
+    if (schemaFile == "") {
+      if (options.getOutput.matches("bigquery://(.*:)?.*\\..*")) {
+        throw new IllegalArgumentException("can't write to bigquery without schema")
+      }
+    }
 
     val pipeline = Pipeline.create(options)
 
@@ -45,18 +51,24 @@ object Stream {
   }
 
   def processRecords(records: PCollection[String], options: MainPingOptions): PCollection[String] = {
-    if (schemaFile != "") {
-      records
-        .apply(ParDo.of(new JsonToJValue()))
-        .apply(ParDo.of(new TrimToSchema(schemaString)))
-        .apply(ParDo.of(new JValueToJson()))
-    } else {
-      if (options.getOutput.matches("bigquery://(.*:)?.*\\..*")) {
-        throw new IllegalArgumentException("can't write to bigquery without schema")
+    val windowed = records
+      .apply(Window.into[String](FixedWindows.of(Duration.standardMinutes(options.getWindowSize))))
+    if (schemaFile != "" || options.getAggregate) {
+      val jvalued = windowed.apply(ParDo.of(new JsonToJValue()))
+      val transformed = if (schemaFile != "" && options.getAggregate) {
+        jvalued
+          .apply(ParDo.of(new TrimToSchema(schemaString)))
+          .apply(Combine.globally(new Aggregate()).withoutDefaults())
+      } else if (schemaFile != "") {
+        jvalued.apply(ParDo.of(new TrimToSchema(schemaString)))
+      } else {
+        jvalued.apply(Combine.globally(new Aggregate()).withoutDefaults())
       }
-      records
+      transformed.apply(ParDo.of(new JValueToJson()))
+    } else {
+      windowed
     }
-  }.apply(Window.into[String](FixedWindows.of(Duration.standardMinutes(options.getWindowSize))))
+  }
 
   def writeOutput(pipeline: PCollection[String], options: MainPingOptions) = {
     val output: String = options.getOutput
@@ -78,6 +90,8 @@ object Stream {
           .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
           .withJsonTimePartitioning(new StringProvider(options.getBigQueryTimePartitioning))
           .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND))
+    } else if (output.matches("-|stdout")) {
+      pipeline.apply(ParDo.of(new PrintString()))
     } else {
       pipeline.apply(TextIO
         .write
@@ -123,6 +137,11 @@ trait MainPingOptions extends PipelineOptions {
   @Default.String("schemas/main.4.bigquery.json")
   def getSchema: String
   def setSchema(path: String)
+
+  @Description("Whether or not to compute aggregates over windows")
+  @Default.Boolean(false)
+  def getAggregate: Boolean
+  def setAggregate(value: Boolean): Unit
 }
 
 class StringProvider(value: String) extends ValueProvider[String] {

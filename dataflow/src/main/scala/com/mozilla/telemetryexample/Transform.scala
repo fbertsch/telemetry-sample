@@ -2,6 +2,7 @@ package com.mozilla.telemetryexample
 
 import org.apache.beam.sdk.transforms.DoFn.ProcessElement
 import org.apache.beam.sdk.transforms.DoFn
+import org.apache.beam.sdk.transforms.Combine.AccumulatingCombineFn
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage
 import org.json4s.jackson.Serialization.read
 import org.json4s.DefaultFormats
@@ -198,5 +199,80 @@ class TrimToSchema(schemaString: String) extends DoFn[JValue, JValue] {
         case _ => throw new IllegalArgumentException(s"Unknown bigquery field type '${schema.`type`}'")
       }
     }
+  }
+}
+
+object Aggregate {
+  class Accum extends AccumulatingCombineFn.Accumulator[JValue, Accum, JValue] with Serializable {
+    private var agg: JValue = JNull
+
+    def addInput(input: JValue): Unit = agg = merge(agg, input)
+    def mergeAccumulator(other: Accum): Unit = agg = merge(agg, other.agg)
+    def extractOutput: JValue = agg
+
+    def merge(v1: JValue, v2: JValue): JValue = {
+      v1 match {
+        case JDecimal(v1_) => v2 match {
+          case JDecimal(v2_) => JDecimal(v1_ + v2_)
+          case JDouble(v2_) => JDecimal(v1_ + BigDecimal(v2_))
+          case JInt(v2_) => JDecimal(v1_ + BigDecimal(v2_))
+          case JLong(v2_) => JDecimal(v1_ + BigDecimal(v2_))
+          case _ => v1
+        }
+        case JDouble(v1_) => v2 match {
+          case JDecimal(v2_) => JDecimal(BigDecimal(v1_) + v2_)
+          case JDouble(v2_) => JDouble(v1_ + v2_)
+          case JInt(v2_) => JDecimal(BigDecimal(v1_) + BigDecimal(v2_))
+          case JLong(v2_) => JDouble(v1_ + v2_)
+          case _ => v1
+        }
+        case JInt(v1_) => v2 match {
+          case JDecimal(v2_) => JDecimal(BigDecimal(v1_) + v2_)
+          case JDouble(v2_) => JDecimal(BigDecimal(v1_) + BigDecimal(v2_))
+          case JInt(v2_) => JInt(v1_ + v2_)
+          case JLong(v2_) => JInt(v1_ + BigInt(v2_))
+          case _ => v1
+        }
+        case JLong(v1_) => v2 match {
+          case JDecimal(v2_) => JDecimal(BigDecimal(v1_) + v2_)
+          case JDouble(v2_) => JDouble(v1_ + v2_)
+          case JInt(v2_) => JInt(BigInt(v1_) + v2_)
+          case JLong(v2_) => JLong(v1_ + v2_)
+          case _ => v1
+        }
+        case JObject(v1_) => v2 match {
+          case JObject(v2_) => {
+            val m1 = Map(v1_.map{ f => (f._1 -> f._2) }:_*)
+            val merged = m1 ++ v2_.map{ f =>
+              if (m1.contains(f._1)) {
+                (f._1 -> merge(m1(f._1), f._2))
+              } else {
+                (f._1 -> f._2)
+              }
+            }
+            JObject(merged.map{ f => JField(f._1, f._2) }.toList)
+          }
+          case _ => v1
+        }
+        case JArray(v1_) => v2 match {
+          case JArray(v2_) => v1 ++ v2
+          case _ => v1
+        }
+        case JNull => v2
+        case JNothing => v2
+        case _ => v1
+      }
+    }
+  }
+}
+
+class Aggregate extends AccumulatingCombineFn[JValue, Aggregate.Accum, JValue] {
+  def createAccumulator = new Aggregate.Accum
+}
+
+class PrintString() extends DoFn[String, String] {
+  @ProcessElement
+  def processElement(c: ProcessContext): Unit = {
+    println(c.element())
   }
 }
