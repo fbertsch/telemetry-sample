@@ -1,9 +1,30 @@
 #!/usr/bin/env python
 
 import json
-from sys import argv
-from sys import stderr
-from sys import stdin
+import unittest
+from sys import argv, stderr, stdin
+
+
+def main():
+    usage = 'usage: jsonschema_to_bigquery.py [<time_partitioning_field> <time_partitioning_type>] < jsonschema.json > bigqueryschema.json\n'
+
+    if len(argv) not in [1, 3]:
+        stderr.write(usage)
+        exit(1)
+
+    try:
+        jsonschema = json.loads(stdin.read())
+    except Exception:
+        stderr.write(usage)
+        exit(1)
+
+    schema = bq_schema(jsonschema)
+
+    if len(argv) == 3:
+        schema['fields'].append({'mode': 'REQUIRED', 'name': argv[1], 'type': argv[2]})
+
+    print(json.dumps(schema, indent=2))
+
 
 type_map = {
     'string': 'STRING',
@@ -110,22 +131,6 @@ def bq_schema(jschema):
         raise Exception(json.dumps([item,jschema, type(item['type']) in [str, unicode], type(item['type']) in [str, unicode] and item['type'] in type_map]))
     return item
 
-usage = 'usage: jsonschema_to_bigquery.py [<time_partitioning_field> <time_partitioning_type>] < jsonschema.json > bigqueryschema.json\n'
 
-if len(argv) not in [1, 3]:
-    stderr.write(usage)
-    exit(1)
-
-try:
-    jsonschema = json.loads(stdin.read())
-except Exception:
-    stderr.write(usage)
-    exit(1)
-
-schema = bq_schema(jsonschema)
-
-if len(argv) == 3:
-    schema['fields'].append({'mode': 'REQUIRED', 'name': argv[1], 'type': argv[2]})
-
-print(json.dumps(schema, indent=2))
-
+if __name__ == '__main__':
+    main()
