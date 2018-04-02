@@ -132,5 +132,381 @@ def bq_schema(jschema):
     return item
 
 
+class TestSchemaAtomic(unittest.TestCase):
+    """Check that the base case of the schema is being handled properly."""
+
+    def test_atomic(self):
+        atomic = {'type': 'integer'}
+        expected = {'type': 'INTEGER', 'mode': 'REQUIRED'}
+
+        self.assertEquals(bq_schema(atomic), expected)
+
+    def test_atomic_with_null(self):
+        atomic = {'type': ['integer', 'null']}
+        expected = {'type': 'INTEGER', 'mode': 'NULLABLE'}
+
+        self.assertEquals(bq_schema(atomic), expected)
+
+    def test_incompatible_atomic_multitype(self):
+        """Test overlapping types are treated as json blobs."""
+
+        atomic = {'type': ['boolean', 'integer']}
+        expected = {'type': 'STRING', 'mode': 'REQUIRED'}
+
+        self.assertEquals(bq_schema(atomic), expected)
+
+    def test_incompatible_atomic_multitype_with_null(self):
+        """Test overlapping types that can be null are nullable json blobs.
+
+        A field is null if any of it's types are null"""
+
+        atomic = {'type': ['boolean', 'integer', 'null']}
+        expected = {'type': 'STRING', 'mode': 'NULLABLE'}
+
+        self.assertEquals(bq_schema(atomic), expected)
+
+    def test_incompatible_oneof_atomic_multitype(self):
+        incompatible_multitype = {
+            "oneOf": [
+                {"type": "integer"},
+                {"type": "boolean"}
+            ]
+        }
+        expected = {'type': 'STRING', 'mode': 'REQUIRED'}
+
+        self.assertEquals(bq_schema(incompatible_multitype), expected)
+
+    def test_incompatible_oneof_atomic_multitype_with_null(self):
+        """Test a oneOf clause and verify that the mode is NULLABLE.
+
+        `null` has a logical-OR like behavior when there are choices of types.
+        """
+
+        incompatible_multitype = {
+            "oneOf": [
+                {"type": ["integer", "null"]},
+                {"type": "boolean"}
+            ]
+        }
+        expected = {'type': 'STRING', 'mode': 'NULLABLE'}
+
+        self.assertEquals(bq_schema(incompatible_multitype), expected)
+
+
+class TestSchemaObject(unittest.TestCase):
+
+    def test_object_with_atomics_is_sorted(self):
+        """Test that fields are sorted in a record.
+
+        Sorting makes the output schema deterministic.
+        """
+
+        object_atomic = {
+            'type': 'object',
+            'properties': {
+                'field_1': {'type': 'integer'},
+                'field_4': {'type': 'number'},
+                'field_3': {'type': 'boolean'},
+                'field_2': {'type': 'string'},
+            }
+        }
+        expected = {
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'field_1', 'type': 'INTEGER', 'mode': 'NULLABLE'},
+                {'name': 'field_2', 'type': 'STRING', 'mode': 'NULLABLE'},
+                {'name': 'field_3', 'type': 'BOOLEAN', 'mode': 'NULLABLE'},
+                {'name': 'field_4', 'type': 'FLOAT', 'mode': 'NULLABLE'}
+            ],
+            'mode': 'REQUIRED'
+        }
+
+        self.assertEquals(bq_schema(object_atomic), expected)
+
+    def test_object_with_atomics_required(self):
+        """Test that required fields have the required mode.
+
+        This changes the mode of the underlying atomic field.
+        """
+        object_atomic = {
+            'type': 'object',
+            'properties': {
+                'field_1': {'type': 'integer'},
+                'field_2': {'type': 'string'},
+                'field_3': {'type': 'boolean'},
+            },
+            'required': ['field_1', 'field_3']
+        }
+        expected = {
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'field_1', 'type': 'INTEGER', 'mode': 'REQUIRED'},
+                {'name': 'field_2', 'type': 'STRING', 'mode': 'NULLABLE'},
+                {'name': 'field_3', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
+            ],
+            'mode': 'REQUIRED'
+        }
+
+        self.assertEquals(bq_schema(object_atomic), expected)
+
+    def test_object_with_atomics_required_with_null(self):
+        """Test the output of a nullable required field.
+
+        The field is casted from nullable to required at the object level.
+        Since the underlying field is null, the field is then casted back
+        to nullable.
+        """
+
+        object_atomic = {
+            'type': 'object',
+            'properties': {
+                'field_1': {'type': ['integer', 'null']},
+                'field_2': {'type': 'string'},
+                'field_3': {'type': 'boolean'},
+            },
+            'required': ['field_1', 'field_3']
+        }
+        expected = {
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'field_1', 'type': 'INTEGER', 'mode': 'NULLABLE'},
+                {'name': 'field_2', 'type': 'STRING', 'mode': 'NULLABLE'},
+                {'name': 'field_3', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
+            ],
+            'mode': 'REQUIRED'
+        }
+
+        self.assertEquals(bq_schema(object_atomic), expected)
+
+    def test_object_with_allof(self):
+        """Test that allOf works.
+
+        Why do we do this?
+        """
+
+        object_allof = {
+            "allOf": [
+                {
+                    'type': 'object',
+                    'properties': {
+                        'field_1': {'type': ['integer', 'null']},
+                        'field_2': {'type': 'string'},
+                        'field_3': {'type': 'boolean'},
+                    }
+                },
+                {'required': ['field_1', 'field_3']}
+            ]
+        }
+
+        expected = {
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'field_1', 'type': 'INTEGER', 'mode': 'NULLABLE'},
+                {'name': 'field_2', 'type': 'STRING', 'mode': 'NULLABLE'},
+                {'name': 'field_3', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
+            ],
+            'mode': 'REQUIRED'
+        }
+
+        self.assertEquals(bq_schema(object_allof), expected)
+
+
+    def test_object_with_complex(self):
+        object_complex = {
+            'type': 'object',
+            'properties': {
+                'namespace_1': {
+                    'type': 'object',
+                    'properties': {
+                        'field_1': {'type': 'string'},
+                        'field_2': {'type': 'integer'}
+                    }
+                }
+            }
+        }
+        expected = {
+            'type': 'RECORD',
+            'fields': [
+                {
+                    'name': 'namespace_1',
+                    'type': 'RECORD',
+                    'fields': [
+                        {'name': 'field_1', 'type': 'STRING', 'mode': 'NULLABLE'},
+                        {'name': 'field_2', 'type': 'INTEGER', 'mode': 'NULLABLE'},
+                    ],
+                    'mode': 'NULLABLE'
+                }
+            ],
+            'mode': 'REQUIRED'
+        }
+
+        self.assertEquals(bq_schema(object_complex), expected)
+
+
+class TestSchemaArray(unittest.TestCase):
+    def test_array_with_atomics(self):
+        array_atomic = {
+            "type": "array",
+            "items": {"type": "integer"}
+        }
+        expected = {'type': 'INTEGER', 'mode': 'REPEATED'}
+
+        self.assertEquals(bq_schema(array_atomic), expected)
+
+    def test_array_with_complex(self):
+        array_complex = {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "field_1": {"type": "string"},
+                    "field_2": {"type": "integer"}
+                }
+            }
+        }
+        expected = {
+            'mode': 'REPEATED',
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'field_1', 'type': 'STRING', 'mode': 'NULLABLE'},
+                {'name': 'field_2', 'type': 'INTEGER', 'mode': 'NULLABLE'},
+            ]
+        }
+
+        self.assertEquals(bq_schema(array_complex), expected)
+
+
+class TestSchemaMap(unittest.TestCase):
+    """Test the behavior of repeated key-value structures.
+
+    This is influenced strongly by the data-structures used in collecting
+    metrics. They have different names but common structure.
+
+    This type of output structure can be handled efficiently with the use of
+    `UNNEST` and projections.
+
+    An alternative is to dump the entire structure to JSON and use javascript
+    UDFs to handle processing.
+    """
+
+    def test_map_with_atomics(self):
+        map_atomic = {
+            "type": "object",
+            "additionalProperties": {"type": "integer"}
+        }
+        expected = {
+            'mode': 'REPEATING',
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
+                {'value': 'value', 'type': 'INTEGER', 'mode': 'NULLABLE'}
+            ]
+        }
+        self.assertEquals(bq_schema(map_atomic), expected)
+
+    def test_map_with_complex(self):
+        map_complex = {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "field_1": {"type": "string"},
+                    "field_2": {"type": "integer"}
+                }
+            }
+        }
+        expected = {
+            'mode': 'REPEATING',
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
+                {
+                    'value': 'value',
+                    'type': 'RECORD',
+                    'fields': [
+                        {'name': 'field_1', 'type': 'STRING', 'mode': 'NULLABLE'},
+                        {'name': 'field_2', 'type': 'INTEGER', 'mode': 'NULLABLE'}
+                    ]
+                }
+            ]
+        }
+        self.assertEquals(bq_schema(map_complex), expected)
+
+    def test_map_with_pattern_properties(self):
+        map_complex = {
+            "type": "object",
+            "patternProperties": {
+                ".+": {"type": "integer"}
+            },
+            "additionalProperties": False
+        }
+        expected = {
+            'mode': 'REPEATING',
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
+                {'value': 'value', 'type': 'INTEGER', 'mode': 'REQUIRED'}
+            ]
+        }
+
+        self.assertEquals(bq_schema(map_complex), expected)
+
+    def test_map_with_pattern_and_additional_properties(self):
+        map_complex = {
+            "type": "object",
+            "patternProperties": {
+                ".+": {"type": "integer"}
+            },
+            "additionalProperties": {"type": "integer"}
+        }
+        expected = {
+            'mode': 'REPEATING',
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
+                {'value': 'value', 'type': 'INTEGER', 'mode': 'NULLABLE'}
+            ]
+        }
+
+        self.assertEquals(bq_schema(map_complex), expected)
+
+    def test_incompatible_map_with_pattern_properties(self):
+        incompatible_map = {
+            "type": "object",
+            "patternProperties": {
+                "^S_": {"type": "string"},
+                "^I_": {"type": "integer"}
+            },
+            "additionalProperties": False
+        }
+        expected = {
+            'mode': 'REPEATING',
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
+                {'value': 'value', 'type': 'STRING', 'mode': 'NULLABLE'}
+            ]
+        }
+        self.assertEquals(bq_schema(incompatible_map), expected)
+
+    def test_incompatible_map_with_pattern_and_additional_properties(self):
+        incompatible_map = {
+            "type": "object",
+            "patternProperties": {
+                ".+": {"type": "string"}
+            },
+            "additionalProperties": {"type": "integer"}
+        }
+        expected = {
+            'mode': 'REPEATING',
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
+                {'value': 'value', 'type': 'STRING', 'mode': 'NULLABLE'}
+            ]
+        }
+        self.assertEquals(bq_schema(incompatible_map), expected)
+
+
 if __name__ == '__main__':
     main()
