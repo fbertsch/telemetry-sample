@@ -36,6 +36,7 @@ type_map = {
 
 def resolve_multitype(types, item):
     types = set(types)
+    item['mode'] = 'REQUIRED'
     if 'null' in types:
         item['mode'] = 'NULLABLE'
         types.remove('null')
@@ -71,9 +72,13 @@ def resolve_multitype(types, item):
 def bq_schema(jschema):
     if type(jschema) is list:
         raise Exception(json.dumps(jschema))
-    item = {}
-    item['type'] = jschema.get('type')
-    if item['type'] is None:
+
+    # jsonschema-default permissiveness
+    item = {'mode': 'REQUIRED'}
+    dtype = jschema.get('type')
+
+    # handling missing fields
+    if dtype is None:
         if 'properties' in jschema:
             item['type'] = 'object'
         elif 'allOf' in jschema:
@@ -82,24 +87,43 @@ def bq_schema(jschema):
             return None
         else:
             return bq_schema({'properties': jschema})
-    elif type(item['type']) is list:
-        resolve_multitype(item['type'], item)
-    if type(item['type']) in [str, unicode] and item['type'] in type_map:
-        item['type'] = type_map[item['type']]
-    elif item['type'] == 'object':
-        item['type'] = 'RECORD'
-        item['fields'] = []
-        for key, val in jschema.get('properties', {}).items():
-            element = bq_schema(val)
-            if element is None:
-                continue
-            element['name'] = key
-            if 'mode' not in element:
-                element['mode'] = key in jschema.get('required', []) and 'REQUIRED' or 'NULLABLE'
-            item['fields'].append(element)
-        if not item['fields']:
-            return None
-    elif item['type'] == 'array':
+
+    # handle multi-types
+    elif isinstance(dtype, list):
+        dtypes = set(dtype)
+        if "null" in dtypes:
+            item["mode"] = "NULLABLE"
+            dtypes.remove("null")
+
+        if len(dtypes) == 1:
+            dtype = dtypes.pop()
+        else:
+            print("Incompatible multitypes, treating as a json blob")
+            dtype = "string"
+
+    if type(dtype) in [str, unicode] and dtype in type_map:
+        item['type'] = type_map[dtype]
+
+    elif dtype == 'object':
+        if "properties" in jschema:
+            item['type'] = 'RECORD'
+
+            fields = []
+            for key, val in jschema.get('properties', {}).items():
+                element = bq_schema(val)
+                if element is None:
+                    continue
+                element['name'] = key
+
+                mode = element['mode']
+                if mode != 'REPEATED':
+                    is_required = key in jschema.get('required', []) and mode is not 'NULLABLE'
+                    element['mode'] = 'REQUIRED' if is_required else 'NULLABLE'
+
+                fields.append(element)
+            item['fields'] = sorted(fields, key=lambda x: x['name'])
+
+    elif dtype == 'array':
         item['mode'] = 'REPEATED'
         if 'items' in jschema:
             if type(jschema['items']) is dict:
@@ -116,7 +140,8 @@ def bq_schema(jschema):
                     ], [])
         else:
             return None
-    elif item['type'] == 'allOf':
+
+    elif dtype == 'allOf':
         elements = [bq_schema(element) for element in jschema['allOf']]
         elements = [element for element in elements if element is not None]
         if not elements:
@@ -127,8 +152,10 @@ def bq_schema(jschema):
             item['fields'] = sum([
                 element.get('fields', []) for element in elements
             ], [])
+
     else:
-        raise Exception(json.dumps([item,jschema, type(item['type']) in [str, unicode], type(item['type']) in [str, unicode] and item['type'] in type_map]))
+        raise Exception(json.dumps([item, jschema, type(item['type']) in [str, unicode], type(item['type']) in [str, unicode] and item['type'] in type_map]))
+
     return item
 
 
