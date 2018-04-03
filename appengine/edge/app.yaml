@@ -1,0 +1,20 @@
+service: edge
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /__.*__
+  script: dockerflow.app
+- url: /.*
+  script: edge.app
+
+libraries:
+- name: flask
+  version: '0.12'
+- name: ujson
+  version: latest
+
+env_variables:
+  NUM_RETRIES: 3
+  EDGE_TOPICS: '{"main_ping":"main_ping_raw","id_ping":"id_ping_raw"}'

@@ -29,7 +29,7 @@ NUM_RETRIES = int(environ.get('NUM_RETRIES', 3))
 PUBSUB = discovery.build('pubsub', 'v1')
 
 
-@app.route('/_ah/push-handlers/validate/<path:topic>', methods=['POST'])
+@app.route('/_ah/push-handlers/<path:topic>', methods=['POST'])
 def handle(topic):
     if topic not in SCHEMAS:
         return 'unknown ping type', 404

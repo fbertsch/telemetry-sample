@@ -25,7 +25,7 @@ bq_schemas = {
 }
 
 
-@app.route('/_ah/push-handlers/bigquery/<path:table>', methods=['POST'])
+@app.route('/_ah/push-handlers/<path:table>', methods=['POST'])
 def push_messages(table):
     if table not in bq_schemas:
         return 'unknown table', 404

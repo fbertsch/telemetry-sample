@@ -27,67 +27,89 @@ appengine -> pubsub -> appengine -> pubsub -> (appengine|dataflow) -> bigquery
 Deploy
 ===
 
-deploy app engine default service
+Deploy Default App Engine Service
+---
 
-    # app engine requires a default service, so this creates a minimal dockerflow service
+App engine requires this service before deploying others. It only serves the
+dockerflow compliant urls, and has no pip dependencies.
+
     gcloud app deploy appengine/default/app.yaml
 
-download the free GeoLite2 country database
+Deploy Edge App Engine Service
+---
 
-    appengine/scripts/download_geolite2.sh
+create pubsub topics
 
-install `libs/`
+    gcloud pubsub topics create main_ping_raw
+    gcloud pubsub topics create id_ping_raw
 
-    # only for OS X
-    ! test -e ~/.pydistutils.cfg || mv ~/.pydistutils.cfg{,.bak}
-    echo -e '[install]\nprefix=' > ~/.pydistutils.cfg
+install `lib/`
 
-    pip install -t appengine/lib -r appengine/requirements.txt
-
-    # only for OS X
-    test -e ~/.pydistutils.cfg.bak && mv ~/.pydistutils.cfg{.bak,} || rm ~/.pydistutils.cfg
+    pip install -t appengine/edge/lib -r appengine/edge/requirements.txt
 
 deploy app engine
 
-    gcloud app deploy appengine/app.yaml
+    gcloud app deploy appengine/edge/app.yaml
+
+Deploy Validate App Engine Service
+---
+
+download the free GeoLite2 country database
+
+    appengine/validate/scripts/download_geolite2.sh
 
 create pubsub topics
 
     gcloud pubsub topics create main_ping
     gcloud pubsub topics create main_ping_invalid
-    gcloud pubsub topics create main_ping_raw
     gcloud pubsub topics create id_ping
     gcloud pubsub topics create id_ping_invalid
-    gcloud pubsub topics create id_ping_raw
 
-create pubsub subscriptions for validator
+install `lib/`
+
+    pip install -t appengine/validate/lib -r appengine/validate/requirements.txt
+
+deploy app engine
+
+    gcloud app deploy appengine/validate/app.yaml
+
+create pubsub subscriptions
 
     PROJECT="$(gcloud config get-value project)"
-    gcloud pubsub subscriptions create main_ping_validate --topic main_ping_raw --push-endpoint https://telemetry-example-dot-$PROJECT.appspot.com/_ah/push-handlers/validate/main_ping
-    gcloud pubsub subscriptions create id_ping_validate --topic id_ping_raw --push-endpoint https://telemetry-example-dot-$PROJECT.appspot.com/_ah/push-handlers/validate/id_ping
+    gcloud pubsub subscriptions create main_ping_validate --topic main_ping_raw --push-endpoint https://validate-dot-$PROJECT.appspot.com/_ah/push-handlers/main_ping
+    gcloud pubsub subscriptions create id_ping_validate --topic id_ping_raw --push-endpoint https://validate-dot-$PROJECT.appspot.com/_ah/push-handlers/id_ping
+
+Create BigQuery Dataset
+---
 
 create bigquery dataset
 
     bq mk telemetry_example
 
-App Engine to BigQuery
-===
+Deploy Bigquery App Engine Service
+---
+
+do this or `Deploy Bigquery Dataflow Streaming Job` not both
 
 create bigquery tables
 
-    bq mk telemetry_example.main_ping_v4 --schema appengine/schemas/main.4.bigquery.json --time_partitioning_field submission_date --time_partitioning_type DAY
-    bq mk telemetry_example.id_ping --schema appengine/schemas/id.bigquery.json --time_partitioning_field submission_date --time_partitioning_type DAY
+    bq mk telemetry_example.main_ping_v4 --schema appengine/bigquery/schemas/main.4.bigquery.json --time_partitioning_field submission_date --time_partitioning_type DAY
+    bq mk telemetry_example.id_ping --schema appengine/bigquery/schemas/id.bigquery.json --time_partitioning_field submission_date --time_partitioning_type DAY
 
-do this or `Dataflow to BigQuery` not both
+deploy app engine
+
+    gcloud app deploy appengine/bigquery/app.yaml
+
+create pubsub subscriptions
 
     PROJECT="$(gcloud config get-value project)"
-    gcloud pubsub subscriptions create main_ping_bigquery --topic main_ping --push-endpoint https://telemetry-example-dot-$PROJECT.appspot.com/_ah/push-handlers/bigquery/main_ping
-    gcloud pubsub subscriptions create id_ping_bigquery --topic id_ping --push-endpoint https://telemetry-example-dot-$PROJECT.appspot.com/_ah/push-handlers/bigquery/id_ping
+    gcloud pubsub subscriptions create main_ping_bigquery --topic main_ping --push-endpoint https://bigquery-dot-$PROJECT.appspot.com/_ah/push-handlers/main_ping
+    gcloud pubsub subscriptions create id_ping_bigquery --topic id_ping --push-endpoint https://bigquery-dot-$PROJECT.appspot.com/_ah/push-handlers/id_ping
 
-Dataflow to BigQuery
-===
+Deploy Bigquery Dataflow Streaming Job
+--
 
-do this or `App Engine to BigQuery` not both
+do this or `Deploy BigQuery App Engine Service` not both
 
 create pubsub subscription for dataflow
 
@@ -121,13 +143,13 @@ Validate
 Send pings to appengine
 
     PROJECT="$(gcloud config get-value project)"
-    curl -d @appengine/test/1.json https://telemetry-example-dot-$PROJECT.appspot.com/main_ping -i
-    curl -d @appengine/test/2.json https://telemetry-example-dot-$PROJECT.appspot.com/main_ping -i
-    curl -d @appengine/test/3.json https://telemetry-example-dot-$PROJECT.appspot.com/main_ping -i
+    curl -d @appengine/test/1.json https://edge-dot-$PROJECT.appspot.com/main_ping -i
+    curl -d @appengine/test/2.json https://edge-dot-$PROJECT.appspot.com/main_ping -i
+    curl -d @appengine/test/3.json https://edge-dot-$PROJECT.appspot.com/main_ping -i
     # send them again to see that they are all determined to be duplicates
-    curl -d @appengine/test/1.json https://telemetry-example-dot-$PROJECT.appspot.com/main_ping -i
-    curl -d @appengine/test/2.json https://telemetry-example-dot-$PROJECT.appspot.com/main_ping -i
-    curl -d @appengine/test/3.json https://telemetry-example-dot-$PROJECT.appspot.com/main_ping -i
+    curl -d @appengine/test/1.json https://edge-dot-$PROJECT.appspot.com/main_ping -i
+    curl -d @appengine/test/2.json https://edge-dot-$PROJECT.appspot.com/main_ping -i
+    curl -d @appengine/test/3.json https://edge-dot-$PROJECT.appspot.com/main_ping -i
 
 Check that pings arrived in bigquery
 

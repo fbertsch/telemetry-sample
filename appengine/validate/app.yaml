@@ -1,0 +1,24 @@
+service: validate
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /_ah/push-handlers/validate/.*
+  script: validate.app
+  login: admin
+  secure: always
+- url: /__.*__
+  script: dockerflow.app
+
+libraries:
+- name: flask
+  version: '0.12'
+- name: ujson
+  version: latest
+
+env_variables:
+  NUM_RETRIES: 3
+  VALIDATE_SCHEMAS: '{"main_ping":"schemas/main.4.schema.json","id_ping":"schemas/id.schema.json"}'
+  GEOIP2_DATABASE: GeoLite2-Country.mmdb
+# TOPICS_IF_INVALID: '{"main_ping": "main_ping_invalid"}'
