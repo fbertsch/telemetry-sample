@@ -1,0 +1,9 @@
+service: landfill
+runtime: custom
+env: flex
+
+env_variables:
+  APPLICATION_ID: mozilla-data-poc-198117
+  DEST: gs://mozilla-data-poc-198117/telemetry_example/landfill/
+  EDGE_TOPICS: '{"main_ping":"main_ping_raw","id_ping":"id_ping_raw"}'
+  NUM_RETRIES: 3
