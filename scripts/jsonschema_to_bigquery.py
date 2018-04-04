@@ -80,9 +80,11 @@ def bq_schema(jschema):
     # handling missing fields
     if dtype is None:
         if 'properties' in jschema:
-            item['type'] = 'object'
+            dtype = 'object'
         elif 'allOf' in jschema:
-            item['type'] = 'allOf'
+            dtype = 'allOf'
+        elif 'oneOf' in jschema:
+            dtype = 'oneOf'
         elif not (set(jschema.keys()) - {'required', 'additionalProperties'}):
             return None
         else:
@@ -103,6 +105,10 @@ def bq_schema(jschema):
 
     if type(dtype) in [str, unicode] and dtype in type_map:
         item['type'] = type_map[dtype]
+
+    elif dtype == 'null':
+        item['type'] = None
+        item['mode'] = 'NULLABLE'
 
     elif dtype == 'object':
         if "properties" in jschema:
@@ -152,6 +158,123 @@ def bq_schema(jschema):
             item['fields'] = sum([
                 element.get('fields', []) for element in elements
             ], [])
+
+    elif dtype == 'oneOf':
+        # default to json blobs
+        item['type'] = 'STRING'
+
+        elements = [bq_schema(element) for element in jschema['oneOf']]
+
+        nullable = any(el['mode'] == 'NULLABLE' for el in elements)
+        item['mode'] = 'NULLABLE' if nullable else 'REQUIRED'
+
+        # remove null values other invalid fields
+        elements = filter(lambda el: el and el['type'], elements)
+
+        dtypes = [el['type'] for el in elements]
+        if all(dtype == dtypes[0] for dtype in dtypes):
+            if dtypes[0] not in ('REPEATED', 'RECORD'):
+                item['type'] = dtypes[0]
+            else:
+                # lowest common ancestor
+                TYPE = 0
+                MODE = 1
+
+                # (namespace, name) -> ([type], [mode])
+                resolution_table = {}
+
+                # Overlay the schemas on each other and look for inconsistencies. This
+                # is done in two passes, one to look for conflicts and one to build the
+                # final tree.
+                queue = [("", el) for el in elements]
+
+                while queue:
+                    namespace, node = queue.pop(0)
+
+                    key = (namespace, node.get('name', "__ROOT__"))
+                    state = resolution_table.get(key, ([], []))
+
+                    state[TYPE].append(node['type'])
+                    state[MODE].append(node['mode'])
+
+                    resolution_table[key] = state
+
+                    namespace = ".".join(key) if namespace else key[1]
+                    if "fields" in node:
+                        queue += [(namespace, child) for child in node["fields"]]
+
+                # build the final tree
+                discard = set()
+
+                root = {
+                    'type': 'RECORD',
+                    'mode': item['mode'],
+                }
+
+                # sort keys by the length of their namespace
+                keys = sorted(resolution_table.keys(), key=lambda x: len(x[0].split('.')))
+                for key in keys:
+
+                    if key in discard:
+                        continue
+
+                    # mark inconsistencies
+                    state = resolution_table[key]
+                    dtype = None
+                    mode = 'REQUIRED'
+
+                    is_consistent = all([dtype == state[TYPE][0] for dtype in state[TYPE]])
+                    is_repeating = [mode == 'REPEATING' for mode in state[MODE]]
+
+                    if not is_consistent or (any(is_repeating) and not all(is_repeating)):
+                        # Remove this line for conflict resolution
+                        return {'type': 'STRING', 'mode': 'REQUIRED'}
+
+                        # NOTE: everything related to the discard set is conflict resolution
+                        # invalidate everything under this namespace
+                        dtype = 'STRING'
+                        mode = 'NULLABLE'
+
+                        namespace = ".".join(key)
+                        discard |= set(key for key in resolution_table if namespace in key[0])
+                    else:
+                        dtype = state[TYPE][0]
+
+                    if all(is_repeating):
+                        mode = "REPEATING"
+                    elif any([mode == "NULLABLE" for mode in state[MODE]]):
+                        mode = "NULLABLE"
+
+
+                    # add entry to the table
+                    namespace, name = key
+                    path = filter(None, namespace.split(".") + [name])[1:]
+
+                    if not path:
+                        root['type'] = dtype
+                        root['mode'] = mode
+                    else:
+                        prev = None
+                        cur = root
+                        for step in path:
+                            prev = cur
+                            if 'fields' not in cur:
+                                cur['fields'] = {}
+                            cur = cur['fields'].get(step, {})
+
+                        prev['fields'][name] = {'name': name, 'type': dtype, 'mode': mode}
+
+                stack = [root]
+                while stack:
+                    node = stack.pop()
+                    if 'fields' in node:
+                        fields = sorted(node['fields'].values(), key=lambda x: x['name'])
+                        node['fields'] = fields
+                        stack += fields
+
+                return root
+        else:
+            print("oneOf types are incompatible, treating as a json blob")
 
     else:
         raise Exception(json.dumps([item, jschema, type(item['type']) in [str, unicode], type(item['type']) in [str, unicode] and item['type'] in type_map]))
