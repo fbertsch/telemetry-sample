@@ -165,33 +165,6 @@ class TestSchemaAtomic(unittest.TestCase):
 
         self.assertEquals(bq_schema(atomic), expected)
 
-    def test_incompatible_oneof_atomic_multitype(self):
-        incompatible_multitype = {
-            "oneOf": [
-                {"type": "integer"},
-                {"type": "boolean"}
-            ]
-        }
-        expected = {'type': 'STRING', 'mode': 'REQUIRED'}
-
-        self.assertEquals(bq_schema(incompatible_multitype), expected)
-
-    def test_incompatible_oneof_atomic_multitype_with_null(self):
-        """Test a oneOf clause and verify that the mode is NULLABLE.
-
-        `null` has a logical-OR like behavior when there are choices of types.
-        """
-
-        incompatible_multitype = {
-            "oneOf": [
-                {"type": ["integer", "null"]},
-                {"type": "boolean"}
-            ]
-        }
-        expected = {'type': 'STRING', 'mode': 'NULLABLE'}
-
-        self.assertEquals(bq_schema(incompatible_multitype), expected)
-
 
 class TestSchemaObject(unittest.TestCase):
 
@@ -277,38 +250,6 @@ class TestSchemaObject(unittest.TestCase):
         }
 
         self.assertEquals(bq_schema(object_atomic), expected)
-
-    def test_object_with_allof(self):
-        """Test that allOf works.
-
-        Why do we do this?
-        """
-
-        object_allof = {
-            "allOf": [
-                {
-                    'type': 'object',
-                    'properties': {
-                        'field_1': {'type': ['integer', 'null']},
-                        'field_2': {'type': 'string'},
-                        'field_3': {'type': 'boolean'},
-                    }
-                },
-                {'required': ['field_1', 'field_3']}
-            ]
-        }
-
-        expected = {
-            'type': 'RECORD',
-            'fields': [
-                {'name': 'field_1', 'type': 'INTEGER', 'mode': 'NULLABLE'},
-                {'name': 'field_2', 'type': 'STRING', 'mode': 'NULLABLE'},
-                {'name': 'field_3', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-            ],
-            'mode': 'REQUIRED'
-        }
-
-        self.assertEquals(bq_schema(object_allof), expected)
 
 
     def test_object_with_complex(self):
@@ -399,7 +340,7 @@ class TestSchemaMap(unittest.TestCase):
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
-                {'value': 'value', 'type': 'INTEGER', 'mode': 'NULLABLE'}
+                {'name': 'value', 'type': 'INTEGER', 'mode': 'REQUIRED'}
             ]
         }
         self.assertEquals(bq_schema(map_atomic), expected)
@@ -421,12 +362,13 @@ class TestSchemaMap(unittest.TestCase):
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
                 {
-                    'value': 'value',
+                    'name': 'value',
                     'type': 'RECORD',
                     'fields': [
                         {'name': 'field_1', 'type': 'STRING', 'mode': 'NULLABLE'},
                         {'name': 'field_2', 'type': 'INTEGER', 'mode': 'NULLABLE'}
-                    ]
+                    ],
+                    'mode': 'REQUIRED'
                 }
             ]
         }
@@ -445,7 +387,7 @@ class TestSchemaMap(unittest.TestCase):
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
-                {'value': 'value', 'type': 'INTEGER', 'mode': 'REQUIRED'}
+                {'name': 'value', 'type': 'INTEGER', 'mode': 'REQUIRED'}
             ]
         }
 
@@ -464,7 +406,7 @@ class TestSchemaMap(unittest.TestCase):
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
-                {'value': 'value', 'type': 'INTEGER', 'mode': 'NULLABLE'}
+                {'name': 'value', 'type': 'INTEGER', 'mode': 'REQUIRED'}
             ]
         }
 
@@ -484,7 +426,7 @@ class TestSchemaMap(unittest.TestCase):
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
-                {'value': 'value', 'type': 'STRING', 'mode': 'NULLABLE'}
+                {'name': 'value', 'type': 'STRING', 'mode': 'REQUIRED'}
             ]
         }
         self.assertEquals(bq_schema(incompatible_map), expected)
@@ -502,11 +444,273 @@ class TestSchemaMap(unittest.TestCase):
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
-                {'value': 'value', 'type': 'STRING', 'mode': 'NULLABLE'}
+                {'name': 'value', 'type': 'STRING', 'mode': 'REQUIRED'}
             ]
         }
         self.assertEquals(bq_schema(incompatible_map), expected)
 
+
+class TestSchemaOneOf(unittest.TestCase):
+    def test_oneof_atomic(self):
+        oneof = {
+            "oneOf": [
+                {"type": "integer"},
+                {"type": "integer"}
+            ]
+        }
+        expected = {'type': 'INTEGER', 'mode': 'REQUIRED'}
+        self.assertEquals(bq_schema(oneof), expected)
+
+    def test_oneof_atomic_with_null(self):
+        oneof = {
+            "oneOf": [
+                {"type": "integer"},
+                {"type": "null"}
+            ]
+        }
+        expected = {'type': 'INTEGER', 'mode': 'NULLABLE'}
+        self.assertEquals(bq_schema(oneof), expected)
+
+    def test_incompatible_oneof_atomic(self):
+        incompatible_multitype = {
+            "oneOf": [
+                {"type": "integer"},
+                {"type": "boolean"}
+            ]
+        }
+        expected = {'type': 'STRING', 'mode': 'REQUIRED'}
+
+        self.assertEquals(bq_schema(incompatible_multitype), expected)
+
+    def test_incompatible_oneof_atomic_with_null(self):
+        """Test a oneOf clause and verify that the mode is NULLABLE.
+
+        `null` has a logical-OR like behavior when there are choices of types.
+        """
+
+        incompatible_multitype = {
+            "oneOf": [
+                {"type": ["integer", "null"]},
+                {"type": "boolean"}
+            ]
+        }
+        expected = {'type': 'STRING', 'mode': 'NULLABLE'}
+
+        self.assertEquals(bq_schema(incompatible_multitype), expected)
+
+    def test_oneof_object_with_atomics(self):
+        case = {
+            "type": "object",
+            "properties": {
+                "field_1": {"type": "integer"},
+                "field_2": {"type": "integer"}
+            }
+        }
+        oneof = {
+            "oneOf": [
+                case,
+                case
+            ]
+        }
+        expected = {
+            "type": "RECORD",
+            "fields": [
+                {"name": "field_1", "type": "INTEGER", "mode": "NULLABLE"},
+                {"name": "field_2", "type": "INTEGER", "mode": "NULLABLE"},
+            ],
+            "mode": "REQUIRED"
+        }
+
+        self.assertEquals(bq_schema(oneof), expected)
+
+    def test_oneof_object_merge(self):
+        """Test schemas that share common structure."""
+        oneof = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "field_1": {"type": "integer"},
+                        "field_3": {"type": "number"}
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "field_2": {"type": "boolean"},
+                        "field_3": {"type": "number"}
+                    }
+                }
+            ]
+        }
+        expected = {
+            "type": "RECORD",
+            "fields": [
+                {"name": "field_1", "type": "INTEGER", "mode": "NULLABLE"},
+                {"name": "field_2", "type": "BOOLEAN", "mode": "NULLABLE"},
+                {"name": "field_3", "type": "FLOAT", "mode": "NULLABLE"}
+            ],
+            "mode": "REQUIRED"
+        }
+        self.assertEquals(bq_schema(oneof), expected)
+
+    def test_oneof_object_merge_with_complex(self):
+        oneof = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "namespace_1": {
+                            "type": "object",
+                            "properties": {
+                                "field_1": {"type": "integer"},
+                                "field_3": {"type": "number"}
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "namespace_1": {
+                            "type": "object",
+                            "properties": {
+                                "field_2": {"type": "boolean"},
+                                "field_3": {"type": "number"}
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "field_4": {"type": "boolean"},
+                        "field_5": {"type": "number"}
+                    }
+                }
+            ]
+        }
+        expected = {
+            "type": "RECORD",
+            "fields": [
+                {"name": "field_4", "type": "BOOLEAN", "mode": "NULLABLE"},
+                {"name": "field_5", "type": "FLOAT", "mode": "NULLABLE"},
+                {
+                    "name": "namespace_1",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "field_1", "type": "INTEGER", "mode": "NULLABLE"},
+                        {"name": "field_2", "type": "BOOLEAN", "mode": "NULLABLE"},
+                        {"name": "field_3", "type": "FLOAT", "mode": "NULLABLE"}
+                    ],
+                    "mode": "NULLABLE"
+                }
+            ],
+            "mode": "REQUIRED"
+        }
+        self.assertEquals(bq_schema(oneof), expected)
+
+    def test_incompatible_oneof_atomic_and_object(self):
+        oneof = {
+            "oneOf": [
+                {"type": "integer"},
+                {
+                    "type": "object",
+                    "properties": {
+                        "field_1": {"type": "integer"}
+                    }
+                }
+            ]
+        }
+        expected = {"type": "STRING", "mode": "REQUIRED"}
+
+        self.assertEquals(bq_schema(oneof), expected)
+
+    def test_incompatible_oneof_object(self):
+        oneof = {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "field_1": {"type": "integer"}
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "field_1": {"type": "boolean"}
+                    }
+                }
+            ]
+        }
+        expected = {"type": "STRING", "mode": "REQUIRED"}
+
+        self.assertEquals(bq_schema(oneof), expected)
+
+    def test_incompatible_oneof_object_with_complex(self):
+        """Test behavior of creating an incompatible leaf on a complex object.
+
+        NOTE: A conflict at a node invalidates the entire tree. Another
+        conflict resolution method is to treat diffs as json blobs while
+        retaining as much structure as possible.
+        """
+
+        case_1 = {
+            'type': 'object',
+            'properties': {
+                'namespace_1': {
+                    'type': 'object',
+                    'properties': {
+                        'field_1': {'type': 'string'},
+                        'field_2': {'type': 'integer'}
+                    }
+                }
+            }
+        }
+        # change a type at a leaf to render the tree incompatible
+        import copy
+        case_2 = copy.deepcopy(case_1)
+        case_2["properties"]["namespace_1"]["properties"]["field_1"]["type"] = "boolean"
+
+        oneof = {
+            "oneOf": [
+                case_1,
+                case_2
+            ]
+        }
+        # TODO: recursively handle typing conflicts
+        expected = {"type": "STRING", "mode": "REQUIRED"}
+
+        self.assertEquals(bq_schema(oneof), expected)
+
+
+class TestSchemaAllOf(unittest.TestCase):
+    def test_allof_object(self):
+        object_allof = {
+            "allOf": [
+                {
+                    'type': 'object',
+                    'properties': {
+                        'field_1': {'type': ['integer', 'null']},
+                        'field_2': {'type': 'string'},
+                        'field_3': {'type': 'boolean'},
+                    }
+                },
+                {'required': ['field_1', 'field_3']}
+            ]
+        }
+
+        expected = {
+            'type': 'RECORD',
+            'fields': [
+                {'name': 'field_1', 'type': 'INTEGER', 'mode': 'NULLABLE'},
+                {'name': 'field_2', 'type': 'STRING', 'mode': 'NULLABLE'},
+                {'name': 'field_3', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
+            ],
+            'mode': 'REQUIRED'
+        }
+
+        self.assertEquals(bq_schema(object_allof), expected)
 
 if __name__ == '__main__':
     main()
