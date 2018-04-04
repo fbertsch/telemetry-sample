@@ -100,7 +100,7 @@ def bq_schema(jschema):
         if len(dtypes) == 1:
             dtype = dtypes.pop()
         else:
-            print("Incompatible multitypes, treating as a json blob")
+            # print("Incompatible multitypes, treating as a json blob")
             dtype = "string"
 
     if type(dtype) in [str, unicode] and dtype in type_map:
@@ -298,7 +298,8 @@ def bq_schema(jschema):
 
                 return root
         else:
-            print("oneOf types are incompatible, treating as a json blob")
+            # print("oneOf types are incompatible, treating as a json blob")
+            pass
 
     else:
         raise Exception(json.dumps([item, jschema, type(item['type']) in [str, unicode], type(item['type']) in [str, unicode] and item['type'] in type_map]))
