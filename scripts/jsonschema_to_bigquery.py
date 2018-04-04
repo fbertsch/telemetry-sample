@@ -128,6 +128,30 @@ def bq_schema(jschema):
 
                 fields.append(element)
             item['fields'] = sorted(fields, key=lambda x: x['name'])
+        else:
+            # TODO: refactor, this is an abuse of the oneOf mechanism
+            extra_types = []
+            for val in jschema.get("patternProperties", {}).values():
+                extra_types.append(val)
+
+            aprop = jschema.get("additionalProperties")
+            if aprop and isinstance(aprop, dict):
+                extra_types.append(aprop)
+
+            if not extra_types:
+                item['TYPE'] = 'STRING'  # blob
+
+            value_schema = bq_schema({"oneOf": extra_types})
+            value_schema['name'] = 'value'
+
+            item = {
+                'type': 'RECORD',
+                'mode': 'REPEATING',
+                'fields': [
+                    {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
+                    value_schema
+                ]
+            }
 
     elif dtype == 'array':
         item['mode'] = 'REPEATED'
