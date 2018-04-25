@@ -146,7 +146,7 @@ def bq_schema(jschema):
 
             item = {
                 'type': 'RECORD',
-                'mode': 'REPEATING',
+                'mode': 'REPEATED',
                 'fields': [
                     {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
                     value_schema
@@ -248,7 +248,7 @@ def bq_schema(jschema):
                     mode = 'REQUIRED'
 
                     is_consistent = all([dtype == state[TYPE][0] for dtype in state[TYPE]])
-                    is_repeating = [mode == 'REPEATING' for mode in state[MODE]]
+                    is_repeating = [mode == 'REPEATED' for mode in state[MODE]]
 
                     if not is_consistent or (any(is_repeating) and not all(is_repeating)):
                         # Remove this line for conflict resolution
@@ -265,7 +265,7 @@ def bq_schema(jschema):
                         dtype = state[TYPE][0]
 
                     if all(is_repeating):
-                        mode = "REPEATING"
+                        mode = "REPEATED"
                     elif any([mode == "NULLABLE" for mode in state[MODE]]):
                         mode = "NULLABLE"
 
@@ -511,7 +511,7 @@ class TestSchemaMap(unittest.TestCase):
             "additionalProperties": {"type": "integer"}
         }
         expected = {
-            'mode': 'REPEATING',
+            'mode': 'REPEATED',
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
@@ -532,7 +532,7 @@ class TestSchemaMap(unittest.TestCase):
             }
         }
         expected = {
-            'mode': 'REPEATING',
+            'mode': 'REPEATED',
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
@@ -558,7 +558,7 @@ class TestSchemaMap(unittest.TestCase):
             "additionalProperties": False
         }
         expected = {
-            'mode': 'REPEATING',
+            'mode': 'REPEATED',
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
@@ -577,7 +577,7 @@ class TestSchemaMap(unittest.TestCase):
             "additionalProperties": {"type": "integer"}
         }
         expected = {
-            'mode': 'REPEATING',
+            'mode': 'REPEATED',
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
@@ -597,7 +597,7 @@ class TestSchemaMap(unittest.TestCase):
             "additionalProperties": False
         }
         expected = {
-            'mode': 'REPEATING',
+            'mode': 'REPEATED',
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},
@@ -615,7 +615,7 @@ class TestSchemaMap(unittest.TestCase):
             "additionalProperties": {"type": "integer"}
         }
         expected = {
-            'mode': 'REPEATING',
+            'mode': 'REPEATED',
             'type': 'RECORD',
             'fields': [
                 {'name': 'key', 'type': 'STRING', 'mode': 'REQUIRED'},

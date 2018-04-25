@@ -1,0 +1,148 @@
+{
+  "fields": [
+    {
+      "type": "STRING", 
+      "mode": "NULLABLE", 
+      "name": "clientId"
+    }, 
+    {
+      "fields": [
+        {
+          "fields": [
+            {
+              "type": "STRING", 
+              "mode": "NULLABLE", 
+              "name": "creationDate"
+            }
+          ], 
+          "type": "RECORD", 
+          "mode": "NULLABLE", 
+          "name": "profile"
+        }, 
+        {
+          "fields": [
+            {
+              "fields": [
+                {
+                  "type": "STRING", 
+                  "mode": "NULLABLE", 
+                  "name": "channel"
+                }
+              ], 
+              "type": "RECORD", 
+              "mode": "NULLABLE", 
+              "name": "update"
+            }
+          ], 
+          "type": "RECORD", 
+          "mode": "NULLABLE", 
+          "name": "settings"
+        }
+      ], 
+      "type": "RECORD", 
+      "mode": "NULLABLE", 
+      "name": "environment"
+    }, 
+    {
+      "type": "STRING", 
+      "mode": "NULLABLE", 
+      "name": "id"
+    }, 
+    {
+      "fields": [
+        {
+          "fields": [
+            {
+              "type": "STRING", 
+              "name": "key", 
+              "mode": "REQUIRED"
+            }, 
+            {
+              "fields": [
+                {
+                  "type": "INTEGER", 
+                  "name": "bucket_count", 
+                  "mode": "NULLABLE"
+                }, 
+                {
+                  "type": "INTEGER", 
+                  "name": "histogram_type", 
+                  "mode": "NULLABLE"
+                }, 
+                {
+                  "type": "INTEGER", 
+                  "name": "range", 
+                  "mode": "REPEATED"
+                }, 
+                {
+                  "type": "INTEGER", 
+                  "name": "sum", 
+                  "mode": "NULLABLE"
+                }, 
+                {
+                  "fields": [
+                    {
+                      "type": "STRING", 
+                      "name": "key", 
+                      "mode": "REQUIRED"
+                    }, 
+                    {
+                      "type": "INTEGER", 
+                      "name": "value", 
+                      "mode": "REQUIRED"
+                    }
+                  ], 
+                  "type": "RECORD", 
+                  "name": "values", 
+                  "mode": "REPEATED"
+                }
+              ], 
+              "type": "RECORD", 
+              "mode": "REQUIRED", 
+              "name": "value"
+            }
+          ], 
+          "type": "RECORD", 
+          "mode": "REPEATED", 
+          "name": "histograms"
+        }, 
+        {
+          "fields": [
+            {
+              "fields": [
+                {
+                  "fields": [
+                    {
+                      "type": "STRING", 
+                      "name": "key", 
+                      "mode": "REQUIRED"
+                    }, 
+                    {
+                      "type": "STRING", 
+                      "mode": "REQUIRED", 
+                      "name": "value"
+                    }
+                  ], 
+                  "type": "RECORD", 
+                  "mode": "REPEATED", 
+                  "name": "scalars"
+                }
+              ], 
+              "type": "RECORD", 
+              "mode": "NULLABLE", 
+              "name": "parent"
+            }
+          ], 
+          "type": "RECORD", 
+          "mode": "NULLABLE", 
+          "name": "processes"
+        }
+      ], 
+      "type": "RECORD", 
+      "mode": "NULLABLE", 
+      "name": "payload"
+    }
+  ], 
+  "type": "RECORD", 
+  "mode": "REQUIRED"
+}

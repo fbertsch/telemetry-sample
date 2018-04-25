@@ -78,6 +78,10 @@ class TrimToSchema(schemaString: String) extends DoFn[JValue, JValue] {
 
   def trim(message: JValue, schema: BQField): JValue = {
     if (schema.mode == "REPEATED") {
+      // a map-type is emulated using a record with a `key` and `value` field.
+      val isRecord = schema.mode == "RECORD"
+      val isMapType = schema.fields.map(_.name).toSet.equals(Set("key", "value"))
+
       // handle array
       message match {
         case JArray(arr) => JArray(
@@ -85,6 +89,18 @@ class TrimToSchema(schemaString: String) extends DoFn[JValue, JValue] {
             trim(element, BQField(schema.`type`, schema.name, "NULLABLE", fields = schema.fields))
           }
         )
+        case JObject(obj: List[JField]) if schema.`type` == "RECORD" && isMapType => {
+          val valueField = schema.fields.filter(_.name == "value").head
+          val valueSchema = BQField(valueField.`type`, valueField.name, valueField.mode, valueField.fields)
+
+          JArray(
+            obj.map {
+              case JField(key: String, element: JValue) => {
+                JObject(List(
+                  JField("key", JString(key)),
+                  JField("value", trim(element, valueSchema))))
+              }})
+        }
         case JNothing => JArray(List())
         case JNull => JArray(List())
         case _ => {
