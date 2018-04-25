@@ -1,0 +1,100 @@
+{
+  "properties": {
+    "clientId": {
+      "type": "string"
+    },
+    "environment": {
+      "properties": {
+        "profile": {
+          "properties": {
+            "creationDate": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "settings": {
+          "properties": {
+            "update": {
+              "properties": {
+                "channel": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "id": {
+      "type": "string"
+    },
+    "payload": {
+      "properties": {
+        "histograms": {
+          "additionalProperties": {
+            "additionalProperties": false,
+            "properties": {
+              "bucket_count": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "histogram_type": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "range": {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "sum": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "values": {
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^\\d+$": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "type": "object"
+        },
+        "info": {},
+        "processes": {
+          "properties": {
+            "parent": {
+              "properties": {
+                "scalars": {
+                  "additionalProperties": {
+                    "type": [
+                      "integer",
+                      "string",
+                      "boolean"
+                    ]
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "type": "object"
+}
